@@ -1,18 +1,26 @@
-name: 質問・エラー報告
-title: "[質問/エラー] ここに概要を書いてください"
-labels: ["question"]
-body: |
-  ## 1. 実現したいこと
-
-  ## 2. 起きている問題
-
-  ## 3. エラーメッセージがある場合はテキストで
-  
-  ## 4. 自分で調べたこと/ やったこと
-
-  ## 5. スクリーンショット
-
-  ## 6. 作業しているファイル名
-
-  - [] すべての必要なものを埋めました
-  - [] エラーメッセージや実現したいことを最低限ググりました
+title: "概要を書いてください"
+body:
+  - type: input
+    attributes:
+      label: "作業中のブランチ名 & 作業中のファイル"
+      description: "詳しく説明してください"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "なにがしたいのか or なにができないのか"
+      description: "詳しく説明してください"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "起きている問題"
+      description: "起きている問題，エラーメッセージのコピーを貼るなどしてください"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "備考"
+      description: "備考"
+    validations:
+      required: false

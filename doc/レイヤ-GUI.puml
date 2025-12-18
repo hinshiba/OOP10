@@ -1,0 +1,753 @@
+@startuml Presentation Layer Detail
+
+!define INTERFACE_COLOR #C8E6C9
+!define VIEWMODEL_COLOR #E1BEE7
+!define VIEW_COLOR #F8BBD0
+
+skinparam linetype ortho
+
+' ============================================
+' 外部レイヤーへの依存 (Dependency Inversion)
+' ============================================
+interface ICompilerService INTERFACE_COLOR
+interface IDebuggerService INTERFACE_COLOR
+interface IRuntimeService INTERFACE_COLOR
+
+note right of ICompilerService
+  依存性逆転の原則:
+  Presentation層は下位レイヤーの
+  インターフェースのみに依存
+end note
+
+' ============================================
+' ViewModelベース (MVVM)
+' ============================================
+abstract class ViewModelBase VIEWMODEL_COLOR {
+    # _dispatcher: IDispatcher
+    --
+    + {abstract} Initialize(): Task
+    + {abstract} Cleanup(): void
+    --
+    # RaisePropertyChanged(propertyName: string): void
+    # SetProperty<T>(field: ref T, value: T, propertyName: string): bool
+}
+
+note right of ViewModelBase
+  INotifyPropertyChanged実装
+  (ReactiveUI推奨)
+end note
+
+' ============================================
+' Main ViewModel
+' ============================================
+class MainViewModel extends ViewModelBase {
+    - _compilerService: ICompilerService
+    - _debuggerService: IDebuggerService
+    - _runtimeService: IRuntimeService
+    - _projectManager: IProjectManager
+    --
+    + EditorViewModel: EditorViewModel
+    + RegisterViewModel: RegisterViewModel
+    + MemoryViewModel: MemoryViewModel
+    + DebugControlViewModel: DebugControlViewModel
+    + BreakpointViewModel: BreakpointViewModel
+    + TimeTravelViewModel: TimeTravelViewModel
+    + OutputViewModel: OutputViewModel
+    --
+    + CurrentProject: Project?
+    + IsDebugging: bool
+    + Title: string
+    --
+    + NewProjectCommand: ICommand
+    + OpenProjectCommand: ICommand
+    + SaveProjectCommand: ICommand
+    + CompileCommand: ICommand
+    + StartDebuggingCommand: ICommand
+    + StopDebuggingCommand: ICommand
+    --
+    + Initialize(): Task
+    + Cleanup(): void
+    --
+    # OnCompilationCompleted(result: CompilationResult): void
+    # OnDebugStateChanged(state: DebugState): void
+}
+
+MainViewModel o--> ICompilerService
+MainViewModel o--> IDebuggerService
+MainViewModel o--> IRuntimeService
+
+' ============================================
+' Editor ViewModel
+' ============================================
+class EditorViewModel extends ViewModelBase {
+    - _compilerService: ICompilerService
+    - _syntaxHighlighter: ISyntaxHighlighter
+    - _autoCompleter: IAutoCompleter
+    --
+    + Document: TextDocument
+    + CurrentLine: int
+    + CurrentColumn: int
+    + IsDirty: bool
+    + SyntaxErrors: ObservableCollection<SyntaxError>
+    + CurrentBreakpoint: Breakpoint?
+    --
+    + UndoCommand: ICommand
+    + RedoCommand: ICommand
+    + FormatCodeCommand: ICommand
+    + ToggleBreakpointCommand: ICommand
+    + GotoLineCommand: ICommand
+    --
+    + LoadFile(path: string): Task
+    + SaveFile(path: string): Task
+    + CompileAndValidate(): Task<bool>
+    + HighlightCurrentLine(line: int): void
+    + ScrollToLine(line: int): void
+}
+
+MainViewModel *-- "1" EditorViewModel
+EditorViewModel o--> ICompilerService
+
+' シンタックスハイライト
+interface ISyntaxHighlighter INTERFACE_COLOR {
+    + Highlight(document: TextDocument): HighlightingResult
+    + GetTokenAt(position: int): Token?
+}
+
+class MipsSyntaxHighlighter implements ISyntaxHighlighter {
+    - _lexer: ILexer
+    - _colorScheme: ColorScheme
+}
+
+EditorViewModel o--> ISyntaxHighlighter
+
+' オートコンプリート
+interface IAutoCompleter INTERFACE_COLOR {
+    + GetCompletions(text: string, position: int): IEnumerable<CompletionItem>
+}
+
+class MipsAutoCompleter implements IAutoCompleter {
+    - _instructionDatabase: InstructionDatabase
+    - _registerNames: string[]
+}
+
+EditorViewModel o--> IAutoCompleter
+
+class TextDocument {
+    + Lines: ObservableCollection<string>
+    + Text: string
+    + Length: int
+    --
+    + Insert(position: int, text: string): void
+    + Delete(start: int, length: int): void
+    + GetLine(lineNumber: int): string
+}
+
+EditorViewModel o--> TextDocument
+
+' ============================================
+' Register ViewModel
+' ============================================
+class RegisterViewModel extends ViewModelBase {
+    - _runtimeService: IRuntimeService
+    - _updateTimer: DispatcherTimer
+    --
+    + Registers: ObservableCollection<RegisterInfo>
+    + SelectedRegister: RegisterInfo?
+    + DisplayFormat: NumberFormat
+    + HighlightChanges: bool
+    --
+    + RefreshCommand: ICommand
+    + EditRegisterCommand: ICommand
+    + CopyValueCommand: ICommand
+    + ChangeFormatCommand: ICommand
+    --
+    + UpdateRegisters(): Task
+    + SetRegisterValue(index: int, value: uint): Task
+    --
+    # OnRegisterChanged(index: int, oldValue: uint, newValue: uint): void
+}
+
+MainViewModel *-- "1" RegisterViewModel
+RegisterViewModel o--> IRuntimeService
+
+class RegisterInfo {
+    + Index: int
+    + Name: string
+    + Value: uint
+    + PreviousValue: uint
+    + IsChanged: bool
+    + Description: string
+    --
+    + GetDisplayValue(format: NumberFormat): string
+}
+
+enum NumberFormat {
+    Decimal
+    Hexadecimal
+    Binary
+    Unsigned
+}
+
+RegisterViewModel o--> "*" RegisterInfo
+RegisterInfo --> NumberFormat
+
+' ============================================
+' Memory ViewModel
+' ============================================
+class MemoryViewModel extends ViewModelBase {
+    - _runtimeService: IRuntimeService
+    - _addressNavigator: IAddressNavigator
+    --
+    + MemoryView: ObservableCollection<MemoryRow>
+    + CurrentAddress: uint
+    + BytesPerRow: int
+    + DisplayMode: MemoryDisplayMode
+    + FollowStackPointer: bool
+    --
+    + GotoAddressCommand: ICommand
+    + SearchCommand: ICommand
+    + ExportCommand: ICommand
+    + RefreshCommand: ICommand
+    --
+    + LoadMemoryRange(startAddress: uint, size: int): Task
+    + UpdateMemory(): Task
+    + HighlightRange(address: uint, size: int): void
+    --
+    # OnMemoryChanged(address: uint, size: int): void
+}
+
+MainViewModel *-- "1" MemoryViewModel
+MemoryViewModel o--> IRuntimeService
+
+class MemoryRow {
+    + Address: uint
+    + Bytes: byte[]
+    + IsChanged: bool
+    --
+    + GetHexDisplay(): string
+    + GetAsciiDisplay(): string
+    + GetDisassembly(): string?
+}
+
+enum MemoryDisplayMode {
+    Hex
+    ASCII
+    Disassembly
+    Mixed
+}
+
+MemoryViewModel o--> "*" MemoryRow
+MemoryRow --> MemoryDisplayMode
+
+interface IAddressNavigator INTERFACE_COLOR {
+    + NavigateTo(address: uint): void
+    + NavigateToSymbol(symbol: string): void
+    + GetHistory(): IEnumerable<uint>
+}
+
+MemoryViewModel o--> IAddressNavigator
+
+' ============================================
+' Debug Control ViewModel
+' ============================================
+class DebugControlViewModel extends ViewModelBase {
+    - _debuggerService: IDebuggerService
+    --
+    + IsRunning: bool
+    + IsPaused: bool
+    + CanStep: bool
+    + CanContinue: bool
+    + ExecutionSpeed: double
+    + InstructionCount: long
+    + CycleCount: long
+    --
+    + StartCommand: ICommand
+    + PauseCommand: ICommand
+    + StopCommand: ICommand
+    + StepIntoCommand: ICommand
+    + StepOverCommand: ICommand
+    + StepOutCommand: ICommand
+    + ContinueCommand: ICommand
+    + RestartCommand: ICommand
+    + RunToCursorCommand: ICommand
+    --
+    + Start(): Task
+    + Pause(): void
+    + Stop(): void
+    + StepInto(): Task
+    + StepOver(): Task
+    + StepOut(): Task
+    + Continue(): Task
+    --
+    # UpdateExecutionState(state: ExecutionState): void
+}
+
+MainViewModel *-- "1" DebugControlViewModel
+DebugControlViewModel o--> IDebuggerService
+
+' ============================================
+' Breakpoint ViewModel
+' ============================================
+class BreakpointViewModel extends ViewModelBase {
+    - _debuggerService: IDebuggerService
+    --
+    + Breakpoints: ObservableCollection<BreakpointInfo>
+    + SelectedBreakpoint: BreakpointInfo?
+    --
+    + AddBreakpointCommand: ICommand
+    + RemoveBreakpointCommand: ICommand
+    + EditBreakpointCommand: ICommand
+    + ToggleBreakpointCommand: ICommand
+    + RemoveAllCommand: ICommand
+    + EnableAllCommand: ICommand
+    + DisableAllCommand: ICommand
+    --
+    + AddBreakpoint(line: int, condition: string?): Task<Guid>
+    + RemoveBreakpoint(id: Guid): Task<bool>
+    + UpdateBreakpoint(id: Guid, info: BreakpointInfo): Task
+}
+
+MainViewModel *-- "1" BreakpointViewModel
+BreakpointViewModel o--> IDebuggerService
+
+class BreakpointInfo {
+    + Id: Guid
+    + Type: BreakpointType
+    + Line: int?
+    + Address: uint?
+    + Condition: string?
+    + Enabled: bool
+    + HitCount: int
+    + FileName: string
+    --
+    + GetDisplayText(): string
+}
+
+enum BreakpointType {
+    Line
+    Address
+    Conditional
+    Data
+}
+
+BreakpointViewModel o--> "*" BreakpointInfo
+BreakpointInfo --> BreakpointType
+
+' ============================================
+' Time Travel ViewModel
+' ============================================
+class TimeTravelViewModel extends ViewModelBase {
+    - _debuggerService: IDebuggerService
+    --
+    + IsEnabled: bool
+    + CurrentSnapshotIndex: int
+    + TotalSnapshots: int
+    + CanGoBack: bool
+    + CanGoForward: bool
+    + Timeline: ObservableCollection<TimelineEntryViewModel>
+    --
+    + EnableCommand: ICommand
+    + DisableCommand: ICommand
+    + GoBackCommand: ICommand
+    + GoForwardCommand: ICommand
+    + GotoSnapshotCommand: ICommand
+    + ClearHistoryCommand: ICommand
+    --
+    + TravelTo(snapshotId: Guid): Task
+    + StepBackward(): Task
+    + StepForward(): Task
+    + RefreshTimeline(): Task
+}
+
+MainViewModel *-- "1" TimeTravelViewModel
+TimeTravelViewModel o--> IDebuggerService
+
+class TimelineEntryViewModel {
+    + SnapshotId: Guid
+    + Timestamp: DateTime
+    + InstructionCount: long
+    + Line: int
+    + PC: uint
+    + EventType: TimelineEventType
+    + Description: string
+    --
+    + GetDisplayTime(): string
+}
+
+TimeTravelViewModel o--> "*" TimelineEntryViewModel
+
+' ============================================
+' Call Stack ViewModel
+' ============================================
+class CallStackViewModel extends ViewModelBase {
+    - _debuggerService: IDebuggerService
+    --
+    + Frames: ObservableCollection<StackFrameInfo>
+    + SelectedFrame: StackFrameInfo?
+    --
+    + RefreshCommand: ICommand
+    + NavigateToFrameCommand: ICommand
+    --
+    + UpdateCallStack(frames: IReadOnlyList<StackFrame>): void
+}
+
+MainViewModel *-- "1" CallStackViewModel
+CallStackViewModel o--> IDebuggerService
+
+class StackFrameInfo {
+    + FunctionName: string
+    + PC: uint
+    + ReturnAddress: uint
+    + SourceFile: string
+    + Line: int
+}
+
+CallStackViewModel o--> "*" StackFrameInfo
+
+' ============================================
+' Output ViewModel
+' ============================================
+class OutputViewModel extends ViewModelBase {
+    - _ioProvider: IIOProvider
+    --
+    + OutputText: ObservableCollection<OutputLine>
+    + InputText: string
+    + MaxLines: int
+    --
+    + ClearCommand: ICommand
+    + CopyCommand: ICommand
+    + SaveCommand: ICommand
+    + SendInputCommand: ICommand
+    --
+    + AppendLine(text: string, type: OutputType): void
+    + Clear(): void
+}
+
+MainViewModel *-- "1" OutputViewModel
+
+class OutputLine {
+    + Text: string
+    + Type: OutputType
+    + Timestamp: DateTime
+}
+
+enum OutputType {
+    Standard
+    Error
+    Warning
+    Info
+    Input
+}
+
+OutputViewModel o--> "*" OutputLine
+OutputLine --> OutputType
+
+' GUI用IOプロバイダー (Adapter Pattern)
+class GUIIOProvider {
+    - _outputViewModel: OutputViewModel
+    --
+    + ReadLine(): string
+    + WriteLine(text: string): void
+    + ReadChar(): char
+    + WriteChar(c: char): void
+}
+
+interface IIOProvider INTERFACE_COLOR
+
+IIOProvider <|.. GUIIOProvider
+GUIIOProvider o--> OutputViewModel
+
+' ============================================
+' Project Management
+' ============================================
+interface IProjectManager INTERFACE_COLOR {
+    + CurrentProject: Project?
+    --
+    + CreateProject(path: string): Task<Project>
+    + OpenProject(path: string): Task<Project>
+    + SaveProject(project: Project): Task
+    + CloseProject(): Task
+}
+
+class ProjectManager {
+    - _serializer: IProjectSerializer
+    --
+    + CurrentProject: Project?
+    --
+    + CreateProject(path: string): Task<Project>
+    + OpenProject(path: string): Task<Project>
+    + SaveProject(project: Project): Task
+    + CloseProject(): Task
+}
+
+IProjectManager <|.. ProjectManager
+MainViewModel o--> IProjectManager
+
+class Project {
+    + Name: string
+    + FilePath: string
+    + SourceFiles: ObservableCollection<string>
+    + Breakpoints: List<BreakpointInfo>
+    + Settings: ProjectSettings
+    + LastModified: DateTime
+}
+
+class ProjectSettings {
+    + RegisterAllocationEnabled: bool
+    + TimeTravelEnabled: bool
+    + MaxHistorySteps: int
+    + SyntaxHighlightingTheme: string
+}
+
+Project *-- "1" ProjectSettings
+
+interface IProjectSerializer INTERFACE_COLOR {
+    + Serialize(project: Project): string
+    + Deserialize(json: string): Project
+}
+
+ProjectManager o--> IProjectSerializer
+
+' ============================================
+' Commands (Command Pattern for UI)
+' ============================================
+interface ICommand INTERFACE_COLOR {
+    + CanExecute(parameter: object?): bool
+    + Execute(parameter: object?): void
+    + CanExecuteChanged: event EventHandler
+}
+
+abstract class CommandBase {
+    + {abstract} CanExecute(parameter: object?): bool
+    + {abstract} Execute(parameter: object?): void
+    + CanExecuteChanged: event EventHandler
+    --
+    # RaiseCanExecuteChanged(): void
+}
+
+class AsyncCommand extends CommandBase {
+    - _execute: Func<Task>
+    - _canExecute: Func<bool>
+    --
+    + AsyncCommand(execute: Func<Task>, canExecute: Func<bool>?)
+    --
+    + CanExecute(parameter: object?): bool
+    + Execute(parameter: object?): void
+    --
+    # ExecuteAsync(): Task
+}
+
+class RelayCommand extends CommandBase {
+    - _execute: Action
+    - _canExecute: Func<bool>
+    --
+    + RelayCommand(execute: Action, canExecute: Func<bool>?)
+    --
+    + CanExecute(parameter: object?): bool
+    + Execute(parameter: object?): void
+}
+
+ICommand <|.. CommandBase
+
+note right of AsyncCommand
+  非同期操作をサポートする
+  コマンド実装
+end note
+
+' ============================================
+' Views (Avalonia UI)
+' ============================================
+class MainWindow VIEW_COLOR {
+    + ViewModel: MainViewModel
+    --
+    + InitializeComponent(): void
+    --
+    # OnLoaded(sender: object, e: RoutedEventArgs): void
+    # OnClosing(sender: object, e: CancelEventArgs): void
+}
+
+class EditorView VIEW_COLOR {
+    + ViewModel: EditorViewModel
+    + TextEditor: AvaloniaEdit.TextEditor
+    --
+    + InitializeComponent(): void
+    --
+    # OnTextChanged(sender: object, e: EventArgs): void
+    # OnCaretPositionChanged(sender: object, e: EventArgs): void
+}
+
+class RegisterView VIEW_COLOR {
+    + ViewModel: RegisterViewModel
+    + RegisterGrid: DataGrid
+    --
+    + InitializeComponent(): void
+}
+
+class MemoryView VIEW_COLOR {
+    + ViewModel: MemoryViewModel
+    + MemoryGrid: DataGrid
+    + AddressInput: TextBox
+    --
+    + InitializeComponent(): void
+    --
+    # OnAddressChanged(sender: object, e: TextChangedEventArgs): void
+}
+
+class DebugToolbar VIEW_COLOR {
+    + ViewModel: DebugControlViewModel
+    --
+    + InitializeComponent(): void
+}
+
+class BreakpointPanel VIEW_COLOR {
+    + ViewModel: BreakpointViewModel
+    + BreakpointList: ListBox
+    --
+    + InitializeComponent(): void
+}
+
+class TimelineView VIEW_COLOR {
+    + ViewModel: TimeTravelViewModel
+    + TimelineSlider: Slider
+    + TimelineGraph: Canvas
+    --
+    + InitializeComponent(): void
+    --
+    # OnTimelineSelectionChanged(sender: object, e: SelectionChangedEventArgs): void
+    # RenderTimeline(): void
+}
+
+class OutputPanel VIEW_COLOR {
+    + ViewModel: OutputViewModel
+    + OutputTextBox: TextBox
+    + InputTextBox: TextBox
+    --
+    + InitializeComponent(): void
+}
+
+' View-ViewModel Binding
+MainWindow --> MainViewModel
+EditorView --> EditorViewModel
+RegisterView --> RegisterViewModel
+MemoryView --> MemoryViewModel
+DebugToolbar --> DebugControlViewModel
+BreakpointPanel --> BreakpointViewModel
+TimelineView --> TimeTravelViewModel
+OutputPanel --> OutputViewModel
+
+MainWindow *-- "1" EditorView
+MainWindow *-- "1" RegisterView
+MainWindow *-- "1" MemoryView
+MainWindow *-- "1" DebugToolbar
+MainWindow *-- "1" BreakpointPanel
+MainWindow *-- "1" TimelineView
+MainWindow *-- "1" OutputPanel
+
+' ============================================
+' Dispatcher (Thread Safety)
+' ============================================
+interface IDispatcher INTERFACE_COLOR {
+    + InvokeAsync(action: Action): Task
+    + InvokeAsync<T>(func: Func<T>): Task<T>
+    + CheckAccess(): bool
+}
+
+class AvaloniaDispatcher implements IDispatcher
+
+ViewModelBase o--> IDispatcher
+
+' ============================================
+' Converter (Value Conversion)
+' ============================================
+interface IValueConverter INTERFACE_COLOR {
+    + Convert(value: object, targetType: Type, parameter: object, culture: CultureInfo): object
+    + ConvertBack(value: object, targetType: Type, parameter: object, culture: CultureInfo): object
+}
+
+class HexConverter implements IValueConverter
+class BoolToVisibilityConverter implements IValueConverter
+class DebugStateToColorConverter implements IValueConverter
+
+note bottom of IValueConverter
+  MVVMでのデータ変換
+  (XAMLバインディング用)
+end note
+
+' ============================================
+' Settings Management
+' ============================================
+interface ISettingsService INTERFACE_COLOR {
+    + GetSetting<T>(key: string, defaultValue: T): T
+    + SetSetting<T>(key: string, value: T): void
+    + SaveSettings(): Task
+}
+
+class SettingsService implements ISettingsService {
+    - _settings: Dictionary<string, object>
+    - _settingsPath: string
+}
+
+MainViewModel o--> ISettingsService
+
+' ============================================
+' Dialog Services (Dependency Inversion)
+' ============================================
+interface IDialogService INTERFACE_COLOR {
+    + ShowMessageBoxAsync(title: string, message: string): Task
+    + ShowConfirmationAsync(title: string, message: string): Task<bool>
+    + ShowOpenFileDialogAsync(filter: string): Task<string?>
+    + ShowSaveFileDialogAsync(filter: string): Task<string?>
+}
+
+class AvaloniaDialogService implements IDialogService
+
+MainViewModel o--> IDialogService
+
+note right of IDialogService
+  依存性逆転の原則:
+  ViewModelはUI実装に
+  依存しない
+end note
+
+' ============================================
+' Theme Management
+' ============================================
+interface IThemeService INTERFACE_COLOR {
+    + CurrentTheme: Theme
+    --
+    + SetTheme(theme: Theme): void
+    + GetAvailableThemes(): IEnumerable<Theme>
+}
+
+class ThemeService implements IThemeService
+
+class Theme {
+    + Name: string
+    + BackgroundColor: Color
+    + ForegroundColor: Color
+    + AccentColor: Color
+    + SyntaxColors: Dictionary<TokenType, Color>
+}
+
+MainViewModel o--> IThemeService
+ThemeService --> Theme
+
+note top of MainViewModel
+  単一責任の原則:
+  MainViewModelは全体調整のみ
+  各機能は専用ViewModelに委譲
+end note
+
+note bottom of ViewModelBase
+  リスコフの置換原則:
+  全てのViewModelは
+  ViewModelBaseで置換可能
+end note
+
+note right of ICommand
+  Command Pattern:
+  UIアクションをオブジェクト化
+  Undo/Redo、マクロ記録が可能
+end note
+
+@enduml

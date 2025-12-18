@@ -1,0 +1,191 @@
+
+' ============================================
+' コンポーネント図
+' ============================================
+@startuml Component_Diagram
+
+!define COMPILER_COLOR #E1F5FE
+!define RUNTIME_COLOR #FFF3E0
+!define PRESENTATION_COLOR #F3E5F5
+!define SHARED_COLOR #E8F5E9
+
+skinparam componentStyle rectangle
+
+package "MipsDebugger.Presentation" PRESENTATION_COLOR {
+    component "ViewModels" as VM {
+        [MainViewModel]
+        [EditorViewModel]
+        [RegisterViewModel]
+        [DebugControlViewModel]
+        [TimeTravelViewModel]
+    }
+    
+    component "Views" as Views {
+        [MainWindow]
+        [EditorView]
+        [RegisterView]
+        [MemoryView]
+    }
+    
+    component "Services" as PServices {
+        [DialogService]
+        [ThemeService]
+        [ProjectManager]
+    }
+}
+
+package "MipsDebugger.Compiler" COMPILER_COLOR {
+    component "Lexer" {
+        [ExtendedLexer]
+    }
+    
+    component "Parser" {
+        [ExtendedParser]
+        [ASTBuilder]
+    }
+    
+    component "RegisterAllocation" {
+        [RegisterAllocator]
+        [GraphColoringStrategy]
+        [LinearScanStrategy]
+        [SpillHandler]
+    }
+    
+    component "CodeGeneration" {
+        [MipsCodeGenerator]
+    }
+    
+    component "Assembler" {
+        [AssemblerSV]
+        [InstructionEncoder]
+    }
+    
+    component "CompilerFacade" {
+        [CompilerService]
+    }
+}
+
+package "MipsDebugger.Runtime" RUNTIME_COLOR {
+    component "Processor" {
+        [MipsProcessor]
+        [InstructionDecoder]
+        [ExecutionPipeline]
+    }
+    
+    component "Memory" {
+        [MemorySV]
+        [TextSegment]
+        [DataSegment]
+        [HeapSegment]
+        [StackSegment]
+    }
+    
+    component "RegisterFile" {
+        [RegisterFileSV]
+    }
+    
+    component "Instructions" {
+        [InstructionSet]
+        [AddInstruction]
+        [LoadInstruction]
+        [BranchInstruction]
+    }
+    
+    component "Syscall" {
+        [SyscallHandler]
+    }
+    
+    component "RuntimeFacade" {
+        [RuntimeService]
+    }
+}
+
+package "MipsDebugger.Debugger" RUNTIME_COLOR {
+    component "Core" {
+        [Debugger]
+        [DebugSession]
+    }
+    
+    component "Breakpoints" {
+        [BreakpointManager]
+        [LineBreakpoint]
+        [ConditionalBreakpoint]
+        [DataBreakpoint]
+    }
+    
+    component "TimeTravel" {
+        [TimeTravelEngine]
+        [SnapshotManager]
+    }
+    
+    component "CallStack" {
+        [CallStackAnalyzer]
+    }
+    
+    component "DebuggerFacade" {
+        [DebuggerService]
+    }
+}
+
+package "MipsDebugger.Shared" SHARED_COLOR {
+    component "Interfaces" {
+        [ICompilerService]
+        [IDebuggerService]
+        [IRuntimeService]
+        [IProcessor]
+        [IMemory]
+        [IInstruction]
+    }
+    
+    component "Models" {
+        [ExecutionState]
+        [CompilationResult]
+        [AST]
+        [Instruction]
+    }
+    
+    component "Utilities" {
+        [Logger]
+        [EventBus]
+    }
+}
+
+' 依存関係
+VM --> ICompilerService
+VM --> IDebuggerService
+VM --> IRuntimeService
+
+CompilerService ..> ICompilerService : implements
+DebuggerService ..> IDebuggerService : implements
+RuntimeService ..> IRuntimeService : implements
+
+CompilerService --> ExtendedLexer
+CompilerService --> ExtendedParser
+CompilerService --> RegisterAllocator
+CompilerService --> MipsCodeGenerator
+CompilerService --> Assembler
+
+DebuggerService --> Debugger
+DebuggerService --> BreakpointManager
+DebuggerService --> TimeTravelEngine
+
+RuntimeService --> MipsProcessor
+RuntimeService --> Memory
+RuntimeService --> RegisterFile
+
+MipsProcessor --> InstructionDecoder
+MipsProcessor --> ExecutionPipeline
+MipsProcessor --> InstructionSet
+
+Debugger --> MipsProcessor
+TimeTravelEngine --> MipsProcessor
+
+Views --> VM : binds to
+
+note right of ICompilerService
+  依存性逆転:
+  Presentation層は
+  インターフェースのみに依存
+end note
+
+@enduml

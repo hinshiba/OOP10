@@ -6,7 +6,8 @@ using OOP10.ViewModels;
 using OOP10.Views;
 using System.Linq;
 
-namespace OOP10; 
+namespace OOP10;
+
 public partial class App: Application {
     public override void Initialize() {
         AvaloniaXamlLoader.Load(this);

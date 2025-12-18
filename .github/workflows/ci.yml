@@ -1,0 +1,74 @@
+name: C# CI with Sonar and Formatting
+
+on:
+  pull_request:
+    branches:
+      - main # 対象のブランチ
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-and-analyze:
+    name: Build, Format Check, and Analyze
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./ # ソリューションファイル(sln, slnx?)の場所
+
+    steps:
+      # 1. ソースコードのチェックアウト
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # SonarQube/Cloudの解析精度向上のため履歴をすべて取得
+
+      # 2. .NET SDKのセットアップ
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.101'
+
+      # 3. Javaのセットアップ for SonarScanner
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'microsoft'
+
+      # 4. SonarScanner のインストール
+      - name: Install SonarScanner
+        run: |
+          dotnet tool install --global dotnet-sonarscanner
+
+      # 5. フォーマットの検証
+      # --verify-no-changes オプションでフォーマット違反がある場合はエラー
+      - name: Check Formatting
+        run: dotnet format --verify-no-changes --verbosity diagnostic
+
+      # 6. SonarScannerの開始
+      # 必ずBuildの前に開始する必要があるらしい
+      - name: Begin Sonar analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          dotnet sonarscanner begin /k:"YOUR_PROJECT_KEY" /o:"YOUR_ORGANIZATION" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+
+      # 7. 依存関係の復元
+      - name: Restore dependencies
+        run: dotnet restore
+
+      # 8. ビルド実行
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      # テストとカバレッジ計測
+      # - name: Test
+      #   run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" -- results-directory ./coverage
+
+      # 9. SonarScannerの終了
+      - name: End Sonar analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"

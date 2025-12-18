@@ -43,7 +43,7 @@ jobs:
       # 5. フォーマットの検証
       # --verify-no-changes オプションでフォーマット違反がある場合はエラー
       - name: Check Formatting
-        run: dotnet format --verify-no-changes --verbosity diagnostic
+        run: dotnet format --verify-no-changes --verbosity diagnostic OOP10.slnx
 
       # 6. SonarScannerの開始
       # 必ずBuildの前に開始する必要があるらしい

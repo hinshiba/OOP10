@@ -1,10 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using AvaloniaApplication1.ViewModels;
+using OOP10.ViewModels;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace AvaloniaApplication1;
+namespace OOP10;
 
 /// <summary>
 /// Given a view model, returns the corresponding view if possible.

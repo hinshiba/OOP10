@@ -2,11 +2,11 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using AvaloniaApplication1.ViewModels;
-using AvaloniaApplication1.Views;
+using OOP10.ViewModels;
+using OOP10.Views;
 using System.Linq;
 
-namespace AvaloniaApplication1; 
+namespace OOP10; 
 public partial class App: Application {
     public override void Initialize() {
         AvaloniaXamlLoader.Load(this);

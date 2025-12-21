@@ -9,7 +9,7 @@ skinparam linetype ortho
 ' レイヤー間インターフェース
 ' ============================================
 interface IRuntimeService INTERFACE_COLOR {
-    + LoadProgram(program: String): Result??
+    + LoadProgram(program: string): Result??
     + Reset(): void
     + ExecuteSteps(stepNum: uint): Result??
 
@@ -23,7 +23,7 @@ class RuntimeService {
     - _processor: IProcessor
     - _memory: IMemory
     --
-    + LoadProgram(program: String): Result??
+    + LoadProgram(program: string): Result??
     + Reset(): void
     + ExecuteSteps(stepNum: int): Result??
 }

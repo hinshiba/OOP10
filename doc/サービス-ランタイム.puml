@@ -1,0 +1,103 @@
+@startuml Runtime Layer Detail
+
+!define INTERFACE_COLOR #C8E6C9
+!define ABSTRACT_COLOR #FFE0B2
+
+skinparam linetype ortho
+
+' ============================================
+' レイヤー間インターフェース
+' ============================================
+interface IRuntimeService INTERFACE_COLOR {
+    + LoadProgram(program: String): Result??
+    + Reset(): void
+    + ExecuteSteps(stepNum: uint): Result??
+
+}
+
+' ============================================
+' ランタイムレイヤ
+' ============================================
+
+class RuntimeService {
+    - _processor: IProcessor
+    - _memory: IMemory
+    --
+    + LoadProgram(program: String): Result??
+    + Reset(): void
+    + ExecuteSteps(stepNum: int): Result??
+}
+
+IRuntimeService <|.. RuntimeService
+
+RuntimeService --> IProcessor
+RuntimeService --> IMemory
+' --------------------------------------------
+' プロセッサとレジスタ
+' --------------------------------------------
+interface IProcessor INTERFACE_COLOR {
+    + Execute(): ExecutionResult
+    + Reset(): void
+}
+
+class MipsProcessor {
+    - _registers: MipsRegisterFile
+    - _memory: IMemory
+    --
+    + Registers: IRegisterFile
+    + Memory: IMemory
+    + PC: uint
+    --
+    + Execute(): ExecutionResult
+    + Reset(): void
+
+}
+
+IProcessor <|.. MipsProcessor
+
+MipsProcessor --> IMemory
+MipsProcessor --> MipsRegisterFile
+
+class MipsRegisterFile {
+    - pc: uint
+    - hi: uint
+    - lo: uint
+    - v0: uint
+    - etc
+    --
+    + GetByRegisterId(name: RegistorId)
+    + GetAllRegisterId()
+    + GetAllRegisterName()
+}
+
+
+MipsRegisterFile ..> MipsRegisterId
+
+enum MipsRegisterId {
+    + v0
+    + etc
+}
+
+' --------------------------------------------
+' メモリ
+' --------------------------------------------
+interface IMemory INTERFACE_COLOR {
+    + LoadProgram(?): void
+    + Reset(): void
+    + Load(addr: uint, len: uint)
+    + Store(addr: uint, len: uint)
+}
+
+class Memory {
+    - _textSegment: byte[]: 
+    - _dataSegment: byte[]: 
+    --
+    + LoadProgram(?): void
+    + Reset(): void
+    + Load(addr: uint, len: uint): byte[]
+    + Store(addr: uint, data: byte[])
+}
+
+IMemory <|.. Memory
+
+@enduml

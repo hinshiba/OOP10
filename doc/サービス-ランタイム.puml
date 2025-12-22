@@ -8,24 +8,45 @@ skinparam linetype ortho
 ' ============================================
 ' レイヤー間インターフェース
 ' ============================================
-interface IRuntimeService INTERFACE_COLOR {
-    + LoadProgram(program: string): Result??
-    + Reset(): void
-    + ExecuteSteps(stepNum: uint): Result??
+package "PlusPim Interface" {
+    interface IRuntimeService INTERFACE_COLOR {
+        + LoadProgram(program: string): Result??
+        + Reset(): void
+        + ExecuteSteps(stepNum: uint): Result??
 
+    }
 }
-
 ' ============================================
 ' ランタイムレイヤ
 ' ============================================
 
-class RuntimeService {
-    - _processor: IProcessor
-    - _memory: IMemory
-    --
-    + LoadProgram(program: string): Result??
-    + Reset(): void
-    + ExecuteSteps(stepNum: int): Result??
+package "Runtime" {
+
+    class RuntimeService {
+        - _processor: IProcessor
+        - _memory: IMemory
+        --
+        + LoadProgram(program: string): Result??
+        + Reset(): void
+        + ExecuteSteps(stepNum: int): Result??
+    }
+
+    interface IProcessor INTERFACE_COLOR {
+        + Execute(): ExecutionResult
+        + Reset(): void
+    }
+
+    interface IAssembler INTERFACE_COLOR {
+        + Assemble(program: string): Program
+    }
+
+    interface IMemory INTERFACE_COLOR {
+        + LoadProgram(program: Program): void
+        + Reset(): void
+        + Load(addr: uint, len: uint)
+        + Store(addr: uint, len: uint)
+    }   
+
 }
 
 IRuntimeService <|.. RuntimeService
@@ -33,7 +54,6 @@ IRuntimeService <|.. RuntimeService
 RuntimeService --> IProcessor
 RuntimeService --> IMemory
 RuntimeService --> IAssembler
-
 ' --------------------------------------------
 ' プログラム
 ' --------------------------------------------
@@ -50,27 +70,41 @@ class Program {
 Program ..> MemorySegment
 
 ' --------------------------------------------
+' 命令
+' --------------------------------------------
+interface IMipsInstruction INTERFACE_COLOR {
+    + Execute(registers: MipsRegisterFile, memory: IMemory): Result??
+}
+
+class MipsAdd {
+    + Execute(registers: MipsRegisterFile, memory: IMemory): Result??
+}
+
+IMipsInstruction <|.. MipsAdd
+
+class MipsAddi {
+    + Execute(registers: MipsRegisterFile, memory: IMemory): Result??
+}
+
+IMipsInstruction <|.. MipsAddi
+
+' --------------------------------------------
 ' アセンブラ
 ' --------------------------------------------
-interface IAssembler INTERFACE_COLOR {
-    + Assemble(program: string): Program
-}
+
 
 class MipsAssembler {
     --
     + Assemble(program: string): Program
 }
+
 IAssembler <|.. MipsAssembler
-
-
 MipsAssembler ..> Program
+
 ' --------------------------------------------
 ' プロセッサとレジスタ
 ' --------------------------------------------
-interface IProcessor INTERFACE_COLOR {
-    + Execute(): ExecutionResult
-    + Reset(): void
-}
+
 
 class MipsProcessor {
     - _registers: MipsRegisterFile
@@ -78,9 +112,9 @@ class MipsProcessor {
     --
     + Execute(): ExecutionResult
     + Reset(): void
-    - _InstFetch(...): ...
-    - _InstDecode(...): ...
-    - _Execute(...): ...
+    - _InstructionFetch(pc: uint): byte[]
+    - _InstructionDecode(op: byte[]): IMipsInstruction
+    - _Execute(instruction: IMipsInstruction): Result??
 
 }
 
@@ -88,6 +122,7 @@ IProcessor <|.. MipsProcessor
 
 MipsProcessor --> IMemory
 MipsProcessor --> MipsRegisterFile
+MipsProcessor ..> IMipsInstruction
 
 class MipsRegisterFile {
     - pc: uint
@@ -112,12 +147,7 @@ enum MipsRegisterId {
 ' --------------------------------------------
 ' メモリ
 ' --------------------------------------------
-interface IMemory INTERFACE_COLOR {
-    + LoadProgram(Program): void
-    + Reset(): void
-    + Load(addr: uint, len: uint)
-    + Store(addr: uint, len: uint)
-}
+
 
 class Memory {
     - Dictionary<MemorySegment, byte[]>

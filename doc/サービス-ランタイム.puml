@@ -76,12 +76,11 @@ class MipsProcessor {
     - _registers: MipsRegisterFile
     - _memory: IMemory
     --
-    + Registers: IRegisterFile
-    + Memory: IMemory
-    + PC: uint
-    --
     + Execute(): ExecutionResult
     + Reset(): void
+    - _InstFetch(...): ...
+    - _InstDecode(...): ...
+    - _Execute(...): ...
 
 }
 

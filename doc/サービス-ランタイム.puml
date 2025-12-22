@@ -32,6 +32,20 @@ IRuntimeService <|.. RuntimeService
 
 RuntimeService --> IProcessor
 RuntimeService --> IMemory
+RuntimeService --> IAssembler
+' --------------------------------------------
+' アセンブラ
+' --------------------------------------------
+interface IAssembler INTERFACE_COLOR {
+    + Assemble(program: string): byte[]
+}
+
+class MipsAssembler {
+    --
+    + Assemble(program: string): byte[]
+}
+IAssembler <|.. MipsAssembler
+
 ' --------------------------------------------
 ' プロセッサとレジスタ
 ' --------------------------------------------

@@ -53,15 +53,17 @@ Program ..> MemorySegment
 ' アセンブラ
 ' --------------------------------------------
 interface IAssembler INTERFACE_COLOR {
-    + Assemble(program: string): byte[]
+    + Assemble(program: string): Program
 }
 
 class MipsAssembler {
     --
-    + Assemble(program: string): byte[]
+    + Assemble(program: string): Program
 }
 IAssembler <|.. MipsAssembler
 
+
+MipsAssembler ..> Program
 ' --------------------------------------------
 ' プロセッサとレジスタ
 ' --------------------------------------------
@@ -112,22 +114,29 @@ enum MipsRegisterId {
 ' メモリ
 ' --------------------------------------------
 interface IMemory INTERFACE_COLOR {
-    + LoadProgram(?): void
+    + LoadProgram(Program): void
     + Reset(): void
     + Load(addr: uint, len: uint)
     + Store(addr: uint, len: uint)
 }
 
 class Memory {
-    - _textSegment: byte[]: 
-    - _dataSegment: byte[]: 
+    - Dictionary<MemorySegment, byte[]>
     --
-    + LoadProgram(?): void
+    + LoadProgram(program: Program): void
     + Reset(): void
     + Load(addr: uint, len: uint): byte[]
     + Store(addr: uint, data: byte[])
 }
 
 IMemory <|.. Memory
+
+Memory ..> MemorySegment
+Memory ..> Program
+
+enum MemorySegment {
+    + text
+    + data
+}
 
 @enduml

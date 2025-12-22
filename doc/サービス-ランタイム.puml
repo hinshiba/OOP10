@@ -47,13 +47,14 @@ package "Runtime" {
         + Store(addr: uint, len: uint)
     }   
 
+    IRuntimeService <|.. RuntimeService
+
+    RuntimeService --> IProcessor
+    RuntimeService --> IMemory
+    RuntimeService --> IAssembler
 }
 
-IRuntimeService <|.. RuntimeService
 
-RuntimeService --> IProcessor
-RuntimeService --> IMemory
-RuntimeService --> IAssembler
 ' --------------------------------------------
 ' プログラム
 ' --------------------------------------------
@@ -69,79 +70,87 @@ class Program {
 
 Program ..> MemorySegment
 
-' --------------------------------------------
-' 命令
-' --------------------------------------------
-interface IMipsInstruction INTERFACE_COLOR {
-    + Execute(registers: MipsRegisterFile, memory: IMemory): Result??
-}
+' ============================================
+' Mips特有の実装
+' ============================================
 
-class MipsAdd {
-    + Execute(registers: MipsRegisterFile, memory: IMemory): Result??
-}
+package "Mips Impl" {
 
-IMipsInstruction <|.. MipsAdd
+    ' --------------------------------------------
+    ' 命令
+    ' --------------------------------------------
+    interface IMipsInstruction INTERFACE_COLOR {
+        + Execute(registers: MipsRegisterFile, memory: IMemory): Result??
+    }
 
-class MipsAddi {
-    + Execute(registers: MipsRegisterFile, memory: IMemory): Result??
-}
+    class MipsAdd {
+        + Execute(registers: MipsRegisterFile, memory: IMemory): Result??
+    }
 
-IMipsInstruction <|.. MipsAddi
+    IMipsInstruction <|.. MipsAdd
 
-' --------------------------------------------
-' アセンブラ
-' --------------------------------------------
+    class MipsAddi {
+        + Execute(registers: MipsRegisterFile, memory: IMemory): Result??
+    }
 
+    IMipsInstruction <|.. MipsAddi
 
-class MipsAssembler {
-    --
-    + Assemble(program: string): Program
-}
-
-IAssembler <|.. MipsAssembler
-MipsAssembler ..> Program
-
-' --------------------------------------------
-' プロセッサとレジスタ
-' --------------------------------------------
+    ' --------------------------------------------
+    ' アセンブラ
+    ' --------------------------------------------
 
 
-class MipsProcessor {
-    - _registers: MipsRegisterFile
-    - _memory: IMemory
-    --
-    + Execute(): ExecutionResult
-    + Reset(): void
-    - _InstructionFetch(pc: uint): byte[]
-    - _InstructionDecode(op: byte[]): IMipsInstruction
-    - _Execute(instruction: IMipsInstruction): Result??
+    class MipsAssembler {
+        --
+        + Assemble(program: string): Program?
+    }
 
-}
+    IAssembler <|.. MipsAssembler
+    MipsAssembler ..> Program
 
-IProcessor <|.. MipsProcessor
-
-MipsProcessor --> IMemory
-MipsProcessor --> MipsRegisterFile
-MipsProcessor ..> IMipsInstruction
-
-class MipsRegisterFile {
-    - pc: uint
-    - hi: uint
-    - lo: uint
-    - v0: uint
-    - etc
-    --
-    + GetByRegisterId(name: RegistorId)
-    + GetAllRegisterId()
-    + GetAllRegisterName()
-}
+    ' --------------------------------------------
+    ' プロセッサとレジスタ
+    ' --------------------------------------------
 
 
-MipsRegisterFile ..> MipsRegisterId
+    class MipsProcessor {
+        - _registers: MipsRegisterFile
+        - _memory: IMemory
+        --
+        + Execute(): ExecutionResult
+        + Reset(): void
+        - _InstructionFetch(pc: uint): byte[]
+        - _InstructionDecode(op: byte[]): IMipsInstruction
+        - _Execute(instruction: IMipsInstruction): Result??
 
-enum MipsRegisterId {
-    + v0
-    + etc
+    }
+
+    IProcessor <|.. MipsProcessor
+
+    MipsProcessor --> IMemory
+    MipsProcessor --> MipsRegisterFile
+    MipsProcessor ..> IMipsInstruction
+
+    class MipsRegisterFile {
+        - pc: uint
+        - hi: uint
+        - lo: uint
+        - v0: uint
+        - etc
+        --
+        + GetByRegisterId(name: RegistorId)
+        + GetAllRegisterId()
+        + GetAllRegisterName()
+    }
+
+
+    MipsRegisterFile ..> MipsRegisterId
+
+    enum MipsRegisterId {
+        + v0
+        + etc
+    }
+
 }
 
 ' --------------------------------------------
@@ -167,5 +176,7 @@ enum MemorySegment {
     + text
     + data
 }
+
+
 
 @enduml

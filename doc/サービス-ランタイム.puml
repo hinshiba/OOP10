@@ -107,7 +107,8 @@ package "Mips Impl" {
 
     IAssembler <|.. MipsAssembler
     MipsAssembler ..> Program
-
+    MipsAssembler ..> MipsInstructions
+    
     ' --------------------------------------------
     ' プロセッサとレジスタ
     ' --------------------------------------------
@@ -130,6 +131,7 @@ package "Mips Impl" {
     MipsProcessor --> IMemory
     MipsProcessor --> MipsRegisterFile
     MipsProcessor ..> IMipsInstruction
+    MipsProcessor ..> MipsInstructions
 
     class MipsRegisterFile {
         - pc: uint
@@ -148,6 +150,11 @@ package "Mips Impl" {
 
     enum MipsRegisterId {
         + v0
+        + etc
+    }
+
+    enum MipsInstructions {
+        + add
         + etc
     }
 

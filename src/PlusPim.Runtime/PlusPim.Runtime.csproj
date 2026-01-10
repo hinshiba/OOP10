@@ -6,10 +6,5 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-	<Folder Include="Memory\" />
-    <Folder Include="Services\" />
-  </ItemGroup>
-
 
 </Project>

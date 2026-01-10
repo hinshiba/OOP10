@@ -1,4 +1,4 @@
-namespace PlusPim.Runtime.Instruction;
+namespace PlusPim.Runtime.MipsArchitecture;
 
 /// <summary>
 /// MIPSの命令オペコードを表す列挙型

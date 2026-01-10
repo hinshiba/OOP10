@@ -7,9 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<Folder Include="Instruction\" />
 	<Folder Include="Memory\" />
-	<Folder Include="Processor\" />
     <Folder Include="Services\" />
   </ItemGroup>
 

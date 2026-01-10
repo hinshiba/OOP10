@@ -1,4 +1,5 @@
 # 上位ディレクトリから .editorconfig 設定を継承する場合は、以下の行を削除します
+
 # C# ファイル
 [*.cs]
 
@@ -122,7 +123,7 @@ csharp_style_prefer_readonly_struct_member = true
 csharp_prefer_braces = true
 csharp_prefer_simple_using_statement = true
 csharp_prefer_system_threading_lock = true
-csharp_style_namespace_declarations = block_scoped
+csharp_style_namespace_declarations = file_scoped
 csharp_style_prefer_method_group_conversion = true
 csharp_style_prefer_primary_constructors = true
 csharp_style_prefer_simple_property_accessors = true
@@ -200,7 +201,7 @@ csharp_space_between_square_brackets = false
 
 # 折り返しの設定
 csharp_preserve_single_line_blocks = true
-csharp_preserve_single_line_statements = true
+csharp_preserve_single_line_statements = false
 
 #### 命名スタイル ####
 

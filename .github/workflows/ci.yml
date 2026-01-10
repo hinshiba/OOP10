@@ -43,4 +43,4 @@ jobs:
       # 5. フォーマットの検証
       # --verify-no-changes オプションでフォーマット違反がある場合はエラー
       - name: Check Formatting
-        run: dotnet format --verify-no-changes --verbosity diagnostic OOP10.slnx
+        run: dotnet format --verify-no-changes --verbosity diagnostic PlusPim.slnx

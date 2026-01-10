@@ -6,8 +6,5 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="Memory\" />
-  </ItemGroup>
 
 </Project>

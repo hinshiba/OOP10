@@ -27,6 +27,9 @@ package "Application" {
     interface IDebugger INTERFACE_COLOR {
     }
 
+
+
+
     IApplication <|.. Application
     Application --> IDebugger
 
@@ -50,22 +53,35 @@ package "EditorController" {
 DebugAdapter --> IApplication
 BuiltInGUI --> IApplication
 
+
+
 ' ============================================
-' デバッガ側
+' ゲートウェイ
 ' ============================================
 
-package "Debuggers" {
+package "Gateways" {
 
     class SpimAdapter {
-    }
-
-    class PlusPimRuntime {
     }
 
 }
 
 IDebugger <|.. SpimAdapter
-IDebugger <|.. PlusPimRuntime
+
+' ============================================
+' デバッガ
+' ============================================
+
+package "Debugger" {
+    ' 独自のデバッガ, TODO
+    class PlusPimDebugger {
+    }
+
+}
+
+IDebugger <|.. PlusPimDebugger
+
+
 
 ' ============================================
 ' 外の依存関係

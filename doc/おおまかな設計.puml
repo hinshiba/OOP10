@@ -1,0 +1,76 @@
+@startuml 大まかな設計
+
+!define INTERFACE_COLOR #C8E6C9
+
+skinparam linetype ortho
+
+' ============================================
+' ブートストラップ
+' ============================================
+package "Boot Strap" {
+    class Program {
+        + Main()
+    }
+}
+' ============================================
+' アプリケーション
+' ============================================
+
+package "Application" {
+
+    class Application {
+    }
+
+    interface IApplication INTERFACE_COLOR {
+    }
+
+    interface IDebugger INTERFACE_COLOR {
+    }
+
+    IApplication <|.. Application
+    Application --> IDebugger
+
+}
+
+
+' ============================================
+' エディタ側
+' ============================================
+
+package "EditorController" {
+
+    class DebugAdapter {
+    }
+
+    class BuiltInGUI {
+    }
+
+}
+
+DebugAdapter --> IApplication
+BuiltInGUI --> IApplication
+
+' ============================================
+' デバッガ側
+' ============================================
+
+package "Debuggers" {
+
+    class SpimAdapter {
+    }
+
+    class PlusPimRuntime {
+    }
+
+}
+
+IDebugger <|.. SpimAdapter
+IDebugger <|.. PlusPimRuntime
+
+' ============================================
+' 外の依存関係
+' ============================================
+
+
+
+@enduml

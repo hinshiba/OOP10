@@ -58,18 +58,18 @@ package "Runtime" {
 ' --------------------------------------------
 ' プログラム
 ' --------------------------------------------
+package "Util" {
+    ' 十分抽象なのでI/Fしない
+    class Program {
+        - _program: Dictionary<MemorySegment, byte[]>
+        - _entryPoint: uint
+        --
+        + GetProgram(): Dictionary<MemorySegment, byte[]>
+        + GetEntryPoint(): uint
+    }
 
-' 十分抽象なのでI/Fしない
-class Program {
-    - _program: Dictionary<MemorySegment, byte[]>
-    - _entryPoint: uint
-    --
-    + GetProgram(): Dictionary<MemorySegment, byte[]>
-    + GetEntryPoint(): uint
+    Program ..> MemorySegment
 }
-
-Program ..> MemorySegment
-
 ' ============================================
 ' Mips特有の実装
 ' ============================================
@@ -164,26 +164,26 @@ package "Mips Impl" {
 ' メモリ
 ' --------------------------------------------
 
+package "Memory" {
+    class Memory {
+        - Dictionary<MemorySegment, byte[]>
+        --
+        + LoadProgram(program: Program): void
+        + Reset(): void
+        + Load(addr: uint, len: uint): byte[]
+        + Store(addr: uint, data: byte[])
+    }
 
-class Memory {
-    - Dictionary<MemorySegment, byte[]>
-    --
-    + LoadProgram(program: Program): void
-    + Reset(): void
-    + Load(addr: uint, len: uint): byte[]
-    + Store(addr: uint, data: byte[])
+    IMemory <|.. Memory
+
+    Memory ..> MemorySegment
+    Memory ..> Program
+
+    enum MemorySegment {
+        + text
+        + data
+    }
 }
-
-IMemory <|.. Memory
-
-Memory ..> MemorySegment
-Memory ..> Program
-
-enum MemorySegment {
-    + text
-    + data
-}
-
 
 
 @enduml

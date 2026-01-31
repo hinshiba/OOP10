@@ -1,6 +1,6 @@
 using PlusPim.Runtime.Services;
 
-namespace PlusPim.Runtime.Processor;
+namespace PlusPim.Runtime.MipsArchitecture;
 
 internal class MipsProcessor: IProcessor {
     public void Execute() {

@@ -1,7 +1,12 @@
-﻿namespace PlusPim;
+using PlusPim.EditorController.DebugAdapter;
+
+namespace PlusPim;
 
 internal class Program {
-    static void Main(string[] args) {
-        Console.WriteLine("Hello, World!");
+    private static void Main(string[] args) {
+        // 各種クラスを呼び出す
+        _ = new
+        DebugAdapter(Console.OpenStandardInput(), Console.OpenStandardOutput());
+
     }
 }

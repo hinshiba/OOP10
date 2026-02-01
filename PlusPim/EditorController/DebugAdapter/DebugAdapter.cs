@@ -10,17 +10,7 @@ internal class DebugAdapter: DebugAdapterBase {
     }
 
     protected override InitializeResponse HandleInitializeRequest(InitializeArguments arguments) {
-        // 一番簡単に送るる例
-        this.Protocol.SendEvent(new OutputEvent {
-            Output = "Handler: InitializeRequest.\n",
-            Category = OutputEvent.CategoryValue.Console
-        });
-
-        this.Protocol.SendEvent(new OutputEvent {
-            Output = "info: hinshiba desu\n",
-            Category = OutputEvent.CategoryValue.Console
-        });
-
+        // InitializeRequestに対してResponseを返す前は，イベントを送信してはならない
         // 返さないといけないレスポンスに，戻り値の型が設定されているので便利
         return new InitializeResponse();
     }

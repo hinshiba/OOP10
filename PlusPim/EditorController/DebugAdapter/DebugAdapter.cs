@@ -41,9 +41,9 @@ internal class DebugAdapter: DebugAdapterBase {
             Category = OutputEvent.CategoryValue.Console
         });
 
-        if(args.ConfigurationProperties.TryGetValue("program", out JToken program)) {
+        if(args.ConfigurationProperties.TryGetValue("program", out JToken? program)) {
             // エラーハンドリングはtodo
-            _ = this._app.Load(program.Value<string>());
+            _ = this._app.Load(program.Value<string>() ?? throw new InvalidOperationException("Program value is missing or null."));
 
             // StoppedEventを送信してVariablesペインを有効化
             this.Protocol.SendEvent(new StoppedEvent(StoppedEvent.ReasonValue.Entry) {
@@ -77,12 +77,24 @@ internal class DebugAdapter: DebugAdapterBase {
     }
 
     protected override ThreadsResponse HandleThreadsRequest(ThreadsArguments args) {
+
+        this.Protocol.SendEvent(new OutputEvent {
+            Output = "Handler: ThreadsRequest.\n",
+            Category = OutputEvent.CategoryValue.Console
+        });
+
         return new ThreadsResponse {
             Threads = [new Microsoft.VisualStudio.Shared.VSCodeDebugProtocol.Messages.Thread(1, "Main Thread")]
         };
     }
 
     protected override StackTraceResponse HandleStackTraceRequest(StackTraceArguments args) {
+
+        this.Protocol.SendEvent(new OutputEvent {
+            Output = "Handler: StackTraceRequest.\n",
+            Category = OutputEvent.CategoryValue.Console
+        });
+
         return new StackTraceResponse {
             StackFrames = [
                 new StackFrame(1, "main", 0, 0)
@@ -92,6 +104,11 @@ internal class DebugAdapter: DebugAdapterBase {
     }
 
     protected override ScopesResponse HandleScopesRequest(ScopesArguments args) {
+        this.Protocol.SendEvent(new OutputEvent {
+            Output = "Handler: ScopesRequest.\n",
+            Category = OutputEvent.CategoryValue.Console
+        });
+
         return new ScopesResponse {
             Scopes = [
                 new Scope("Registers", REGISTERS_SCOPE_REF, false) {
@@ -105,6 +122,11 @@ internal class DebugAdapter: DebugAdapterBase {
     }
 
     protected override VariablesResponse HandleVariablesRequest(VariablesArguments args) {
+        this.Protocol.SendEvent(new OutputEvent {
+            Output = "Handler: VariablesRequest.\n",
+            Category = OutputEvent.CategoryValue.Console
+        });
+
         List<Variable> variables = [];
         (int[] registers, int pc, int hi, int lo) = this._app.GetRegisters();
 
@@ -123,4 +145,63 @@ internal class DebugAdapter: DebugAdapterBase {
         };
     }
 
+    protected override ContinueResponse HandleContinueRequest(ContinueArguments args) {
+
+        this.Protocol.SendEvent(new OutputEvent {
+            Output = "Handler: ContinueRequest.\n",
+            Category = OutputEvent.CategoryValue.Console
+        });
+
+        while(!this._app.IsTerminated()) {
+            this._app.Step();
+        }
+        this.Protocol.SendEvent(new TerminatedEvent());
+        return new ContinueResponse { AllThreadsContinued = true };
+    }
+
+    protected override NextResponse HandleNextRequest(NextArguments args) {
+        this.Protocol.SendEvent(new OutputEvent {
+            Output = "Handler: NextRequest.\n",
+            Category = OutputEvent.CategoryValue.Console
+        });
+
+        this.ExecuteSingleStep();
+        return new NextResponse();
+    }
+
+    protected override StepInResponse HandleStepInRequest(StepInArguments args) {
+        this.Protocol.SendEvent(new OutputEvent {
+            Output = "Handler: StepInRequest.\n",
+            Category = OutputEvent.CategoryValue.Console
+        });
+
+        this.ExecuteSingleStep();
+        return new StepInResponse();
+    }
+
+    protected override StepOutResponse HandleStepOutRequest(StepOutArguments args) {
+        this.Protocol.SendEvent(new OutputEvent {
+            Output = "Handler: StepOutRequest.\n",
+            Category = OutputEvent.CategoryValue.Console
+        });
+
+        this.ExecuteSingleStep();
+        return new StepOutResponse();
+    }
+
+    private void ExecuteSingleStep() {
+        this._app.Step();
+        if(this._app.IsTerminated()) {
+            this.Protocol.SendEvent(new OutputEvent {
+                Output = "debugee is terminated.\n",
+                Category = OutputEvent.CategoryValue.Console
+            });
+            this.Protocol.SendEvent(new TerminatedEvent());
+        } else {
+            this.Protocol.SendEvent(new StoppedEvent(StoppedEvent.ReasonValue.Step) {
+                ThreadId = 1,
+                AllThreadsStopped = true
+            });
+        }
+    }
 }

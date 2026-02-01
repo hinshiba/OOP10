@@ -6,4 +6,7 @@ internal interface IDebugger {
     int[] GetRegisters();  // 32要素の配列
     int GetHI();
     int GetLO();
+    void Step();
+    int GetCurrentLine();
+    bool IsTerminated();
 }

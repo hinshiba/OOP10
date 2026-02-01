@@ -22,7 +22,11 @@ internal partial class Mnemonic: IParsable<Mnemonic> {
 
     private OperationType OperationType { get; set; }
 
-    public static bool TryParse([NotNullWhen(true)] string s, IFormatProvider provider, [MaybeNullWhen(false)] out Mnemonic result) {
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out Mnemonic result) {
+        if(s is null) {
+            result = null;
+            return false;
+        }
         result = new Mnemonic();
         if(result.TryParseReg3(s)) {
             return true;
@@ -31,8 +35,8 @@ internal partial class Mnemonic: IParsable<Mnemonic> {
         return false;
     }
 
-    static Mnemonic IParsable<Mnemonic>.Parse(string s, IFormatProvider provider) {
-        return Mnemonic.TryParse(s, provider, out Mnemonic result) ? result : throw new FormatException();
+    static Mnemonic IParsable<Mnemonic>.Parse(string? s, IFormatProvider? provider) {
+        return Mnemonic.TryParse(s, provider, out Mnemonic? result) ? result : throw new FormatException();
     }
 
 
@@ -43,7 +47,7 @@ internal partial class Mnemonic: IParsable<Mnemonic> {
             this._operationType = OperationType.Regs3;
             this._opRegs3 = opRegs3;
 
-            // ignore caseでパース 
+            // ignore caseでパース
             if(Enum.TryParse<Register>(match.Groups["rd"].Value, true, out Register rd)
                 && Enum.TryParse<Register>(match.Groups["rs"].Value, true, out Register rs)
                 && Enum.TryParse<Register>(match.Groups["rt"].Value, true, out Register rt)) {
@@ -59,7 +63,30 @@ internal partial class Mnemonic: IParsable<Mnemonic> {
         }
     }
 
+    public void Execute(int[] registers) {
+        switch(this._operationType) {
+            case OperationType.Regs3:
+                this.ExecuteRegs3(registers);
+                break;
+        }
+    }
 
+    private void ExecuteRegs3(int[] registers) {
+        int rdIndex = (int)this._rd;
+        if(rdIndex == 0) {
+            return; // $zero保護
+        }
+
+        int rsValue = registers[(int)this._rs];
+        int rtValue = registers[(int)this._rt];
+
+        registers[rdIndex] = this._opRegs3 switch {
+            OpRegs3.Add => rsValue + rtValue,
+            OpRegs3.Addu => rsValue + rtValue,
+            OpRegs3.Sub => rsValue - rtValue,
+            _ => registers[rdIndex]
+        };
+    }
 }
 
 

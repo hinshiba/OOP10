@@ -14,4 +14,16 @@ internal class Application: IApplication {
     public (int[] Registers, int PC, int HI, int LO) GetRegisters() {
         return (this._debugger.GetRegisters(), this._debugger.GetPC(), this._debugger.GetHI(), this._debugger.GetLO());
     }
+
+    public void Step() {
+        this._debugger.Step();
+    }
+
+    public int GetCurrentLine() {
+        return this._debugger.GetCurrentLine();
+    }
+
+    public bool IsTerminated() {
+        return this._debugger.IsTerminated();
+    }
 }

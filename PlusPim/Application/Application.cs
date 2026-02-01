@@ -1,19 +1,13 @@
 namespace PlusPim.Application;
 
 internal class Application: IApplication {
-    public void initialize() {
+    private readonly IDebugger _debugger;
 
+    internal Application(IDebugger debugger) {
+        this._debugger = debugger;
     }
 
-    public void launch() {
-        throw new NotImplementedException();
+    public bool Load(string programPath) {
+        return this._debugger.Load(programPath);
     }
-
-    public void disconnect() {
-        throw new NotImplementedException();
-    }
-
-
-
-
 }

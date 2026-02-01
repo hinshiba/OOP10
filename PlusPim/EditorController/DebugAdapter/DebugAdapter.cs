@@ -1,10 +1,15 @@
 using Microsoft.VisualStudio.Shared.VSCodeDebugProtocol;
 using Microsoft.VisualStudio.Shared.VSCodeDebugProtocol.Messages;
+using Newtonsoft.Json.Linq;
+using PlusPim.Application;
 
 namespace PlusPim.EditorController.DebugAdapter;
 
 internal class DebugAdapter: DebugAdapterBase {
-    internal DebugAdapter(Stream input, Stream output) {
+    private readonly IApplication _app;
+
+    internal DebugAdapter(Stream input, Stream output, IApplication app) {
+        this._app = app;
         this.InitializeProtocolClient(input, output);
         this.Protocol.Run();
     }
@@ -21,6 +26,19 @@ internal class DebugAdapter: DebugAdapterBase {
             Output = "Handler: LaunchRequest.\n",
             Category = OutputEvent.CategoryValue.Console
         });
+
+        if(args.ConfigurationProperties.TryGetValue("program", out JToken program)) {
+            // エラーハンドリングはtodo
+            _ = this._app.Load(program.Value<string>());
+        } else {
+            this.Protocol.SendEvent(new OutputEvent {
+                Output = "program field not found in JSON\n",
+                Category = OutputEvent.CategoryValue.Console
+            });
+            // プログラムが指定されていない場合はterminatedイベントを送信
+            this.Protocol.SendEvent(new TerminatedEvent());
+        }
+
 
         // 即座にterminatedイベントを送信
         //this.Protocol.SendEvent(new TerminatedEvent());

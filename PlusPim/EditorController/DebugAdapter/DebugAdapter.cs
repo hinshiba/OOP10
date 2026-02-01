@@ -16,6 +16,11 @@ internal class DebugAdapter: DebugAdapterBase {
             Category = OutputEvent.CategoryValue.Console
         });
 
+        this.Protocol.SendEvent(new OutputEvent {
+            Output = "info: hinshiba desu\n",
+            Category = OutputEvent.CategoryValue.Console
+        });
+
         // 返さないといけないレスポンスに，戻り値の型が設定されているので便利
         return new InitializeResponse();
     }
@@ -28,7 +33,7 @@ internal class DebugAdapter: DebugAdapterBase {
         });
 
         // 即座にterminatedイベントを送信
-        this.Protocol.SendEvent(new TerminatedEvent());
+        //this.Protocol.SendEvent(new TerminatedEvent());
 
         return new LaunchResponse();
     }

@@ -134,12 +134,12 @@ BuiltInGUI --> IApplication
 
 package "Gateways" {
 
-    class SpimAdapter {
+    class SpimGateway {
     }
 
 }
 
-IDebugger <|.. SpimAdapter
+IDebugger <|.. SpimGateway
 
 ' ============================================
 ' デバッガ

@@ -17,6 +17,25 @@
         "command": "pluspim.helloWorld",
         "title": "Hello World"
       }
+    ],
+    "debuggers": [
+      {
+        "type": "pluspim",
+        "label": "PlusPim Debugger",
+        "program": "D:/dev/_univ/g2t4/OOP10/PlusPim/bin/Debug/net10.0/PlusPim.exe",
+        "configurationAttributes": {
+          "launch": {
+            "properties": {}
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "pluspim",
+            "request": "launch",
+            "name": "Minimal Launch"
+          }
+        ]
+      }
     ]
   },
   "scripts": {

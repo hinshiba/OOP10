@@ -10,4 +10,8 @@ internal class Application: IApplication {
     public bool Load(string programPath) {
         return this._debugger.Load(programPath);
     }
+
+    public (int[] Registers, int PC, int HI, int LO) GetRegisters() {
+        return (this._debugger.GetRegisters(), this._debugger.GetPC(), this._debugger.GetHI(), this._debugger.GetLO());
+    }
 }

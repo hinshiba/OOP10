@@ -6,6 +6,20 @@ using PlusPim.Application;
 namespace PlusPim.EditorController.DebugAdapter;
 
 internal class DebugAdapter: DebugAdapterBase {
+    private const int REGISTERS_SCOPE_REF = 1000;
+    private const int SPECIAL_REGISTERS_SCOPE_REF = 1001;
+
+    private static readonly string[] RegisterNames = [
+        "$zero ($0)", "$at ($1)", "$v0 ($2)", "$v1 ($3)",
+        "$a0 ($4)", "$a1 ($5)", "$a2 ($6)", "$a3 ($7)",
+        "$t0 ($8)", "$t1 ($9)", "$t2 ($10)", "$t3 ($11)",
+        "$t4 ($12)", "$t5 ($13)", "$t6 ($14)", "$t7 ($15)",
+        "$s0 ($16)", "$s1 ($17)", "$s2 ($18)", "$s3 ($19)",
+        "$s4 ($20)", "$s5 ($21)", "$s6 ($22)", "$s7 ($23)",
+        "$t8 ($24)", "$t9 ($25)", "$k0 ($26)", "$k1 ($27)",
+        "$gp ($28)", "$sp ($29)", "$s8 ($30)", "$ra ($31)"
+    ];
+
     private readonly IApplication _app;
 
     internal DebugAdapter(Stream input, Stream output, IApplication app) {
@@ -30,13 +44,19 @@ internal class DebugAdapter: DebugAdapterBase {
         if(args.ConfigurationProperties.TryGetValue("program", out JToken program)) {
             // エラーハンドリングはtodo
             _ = this._app.Load(program.Value<string>());
+
+            // StoppedEventを送信してVariablesペインを有効化
+            this.Protocol.SendEvent(new StoppedEvent(StoppedEvent.ReasonValue.Entry) {
+                ThreadId = 1,
+                AllThreadsStopped = true
+            });
         } else {
             this.Protocol.SendEvent(new OutputEvent {
                 Output = "program field not found in JSON\n",
                 Category = OutputEvent.CategoryValue.Console
             });
             // プログラムが指定されていない場合はterminatedイベントを送信
-            this.Protocol.SendEvent(new TerminatedEvent());
+            //this.Protocol.SendEvent(new TerminatedEvent());
         }
 
 
@@ -54,6 +74,53 @@ internal class DebugAdapter: DebugAdapterBase {
         });
 
         return new DisconnectResponse();
+    }
+
+    protected override ThreadsResponse HandleThreadsRequest(ThreadsArguments args) {
+        return new ThreadsResponse {
+            Threads = [new Microsoft.VisualStudio.Shared.VSCodeDebugProtocol.Messages.Thread(1, "Main Thread")]
+        };
+    }
+
+    protected override StackTraceResponse HandleStackTraceRequest(StackTraceArguments args) {
+        return new StackTraceResponse {
+            StackFrames = [
+                new StackFrame(1, "main", 0, 0)
+            ],
+            TotalFrames = 1
+        };
+    }
+
+    protected override ScopesResponse HandleScopesRequest(ScopesArguments args) {
+        return new ScopesResponse {
+            Scopes = [
+                new Scope("Registers", REGISTERS_SCOPE_REF, false) {
+                    PresentationHint = Scope.PresentationHintValue.Registers
+                },
+                new Scope("Special Registers", SPECIAL_REGISTERS_SCOPE_REF, false) {
+                    PresentationHint = Scope.PresentationHintValue.Registers
+                }
+            ]
+        };
+    }
+
+    protected override VariablesResponse HandleVariablesRequest(VariablesArguments args) {
+        List<Variable> variables = [];
+        (int[] registers, int pc, int hi, int lo) = this._app.GetRegisters();
+
+        if(args.VariablesReference == REGISTERS_SCOPE_REF) {
+            for(int i = 0; i < 32; i++) {
+                variables.Add(new Variable(RegisterNames[i], $"0x{registers[i]:X8}", 0));
+            }
+        } else if(args.VariablesReference == SPECIAL_REGISTERS_SCOPE_REF) {
+            variables.Add(new Variable("PC", $"0x{pc:X8}", 0));
+            variables.Add(new Variable("HI", $"0x{hi:X8}", 0));
+            variables.Add(new Variable("LO", $"0x{lo:X8}", 0));
+        }
+
+        return new VariablesResponse {
+            Variables = variables
+        };
     }
 
 }

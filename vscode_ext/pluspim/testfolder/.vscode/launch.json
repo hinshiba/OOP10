@@ -7,7 +7,8 @@
         {
             "type": "pluspim",
             "request": "launch",
-            "name": "Minimal Launch"
+            "name": "Minimal Launch",
+            "program": "${file}"
         }
     ]
 }

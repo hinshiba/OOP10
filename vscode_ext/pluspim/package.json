@@ -25,7 +25,13 @@
         "program": "D:/dev/_univ/g2t4/OOP10/PlusPim/bin/Debug/net10.0/PlusPim.exe",
         "configurationAttributes": {
           "launch": {
-            "properties": {}
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "ファイルへのパス",
+                "default": "${file}"
+              }
+            }
           }
         },
         "initialConfigurations": [

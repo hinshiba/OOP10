@@ -22,7 +22,7 @@
       {
         "type": "pluspim",
         "label": "PlusPim Debugger",
-        "program": "D:/dev/_univ/g2t4/OOP10/PlusPim/bin/Debug/net10.0/PlusPim.exe",
+        "program": "C:\\Users\\haruh\\Dev\\_class\\g2t4\\AvaloniaApplication1\\PlusPim\\bin\\Debug\\net10.0\\PlusPim.exe",
         "configurationAttributes": {
           "launch": {
             "properties": {

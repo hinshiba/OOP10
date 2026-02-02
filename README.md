@@ -3,4 +3,5 @@
 ## team member
 
 Kiichi
+Akichika
 takato

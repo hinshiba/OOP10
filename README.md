@@ -4,3 +4,4 @@
 
 Kiichi
 Akichika
+takato

@@ -7,4 +7,7 @@
   <Folder Name="/src/">
     <Project Path="src/PlusPim.Runtime/PlusPim.Runtime.csproj" />
   </Folder>
+  <Project Path="PlusPim/PlusPim.csproj" Id="c0fb3b22-3abc-4471-864b-cbb2482e0710">
+    <BuildDependency Project="src/PlusPim.Runtime/PlusPim.Runtime.csproj" />
+  </Project>
 </Solution>

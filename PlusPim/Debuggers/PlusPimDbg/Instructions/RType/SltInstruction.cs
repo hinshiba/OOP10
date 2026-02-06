@@ -2,9 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace PlusPim.Debuggers.PlusPimDbg.Instructions.RType;
 
-internal sealed class SltInstruction: RTypeInstruction {
-    public SltInstruction(RegisterID rd, RegisterID rs, RegisterID rt) : base(rd, rs, rt) { }
-
+internal sealed class SltInstruction(RegisterID rd, RegisterID rs, RegisterID rt): RTypeInstruction(rd, rs, rt) {
     public override void Execute(IExecutionContext context) {
         int result = this.ReadRs(context) < this.ReadRt(context) ? 1 : 0;
         this.WriteRd(context, result);

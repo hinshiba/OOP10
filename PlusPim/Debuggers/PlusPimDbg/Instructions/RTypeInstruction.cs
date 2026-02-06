@@ -28,10 +28,10 @@ internal abstract partial class RTypeInstruction: IInstruction {
         this.Shamt = new Immediate(-1); // 使用しない
     }
 
-    protected RTypeInstruction(RegisterID rd, RegisterID rs, Immediate shamt) {
+    protected RTypeInstruction(RegisterID rd, RegisterID rt, Immediate shamt) {
         this.Rd = rd;
-        this.Rs = rs;
-        this.Rt = RegisterID.Zero; // 使用しない
+        this.Rs = RegisterID.Zero; // 使用しない
+        this.Rt = rt;
         this.Shamt = shamt;
     }
 

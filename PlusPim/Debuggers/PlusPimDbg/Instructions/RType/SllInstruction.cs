@@ -7,7 +7,7 @@ internal sealed class SllInstruction(RegisterID rd, RegisterID rt, Immediate sha
         int rtVal = this.ReadRt(context);
         int result = rtVal << this.Shamt;
         this.WriteRd(context, result);
-        context.Log($"sll ${this.Rd}, ${this.Rt}, {this.Shamt}: 0x{rtVal:X8} << {this.Shamt} = 0x{result:X8}");
+        context.Log($"sll ${this.Rd}, ${this.Rt}, {this.Shamt.Value}: 0x{rtVal:X8} << {this.Shamt.Value} = 0x{result:X8}");
     }
 }
 

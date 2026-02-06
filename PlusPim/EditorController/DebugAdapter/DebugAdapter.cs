@@ -41,6 +41,11 @@ internal class DebugAdapter: DebugAdapterBase {
             Category = OutputEvent.CategoryValue.Console
         });
 
+        this._app.SetLogger(msg => this.Protocol.SendEvent(new OutputEvent {
+            Output = msg + "\n",
+            Category = OutputEvent.CategoryValue.Console
+        }));
+
         if(args.ConfigurationProperties.TryGetValue("program", out JToken? program)) {
             // エラーハンドリングはtodo
             _ = this._app.Load(program.Value<string>() ?? throw new InvalidOperationException("Program value is missing or null."));

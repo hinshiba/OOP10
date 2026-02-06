@@ -7,6 +7,10 @@ internal class Application: IApplication {
         this._debugger = debugger;
     }
 
+    public void SetLogger(Action<string> log) {
+        this._debugger.SetLogger(log);
+    }
+
     public bool Load(string programPath) {
         return this._debugger.Load(programPath);
     }

@@ -2,14 +2,20 @@ namespace PlusPim.Debuggers.PlusPimDbg;
 
 internal class ParsedProgram {
     private readonly Mnemonic[] _mnemonics;
+    private readonly int[] _sourceLines;
     private readonly Dictionary<string, int> _symbolTable;
 
+    public string ProgramPath { get; }
+
     public ParsedProgram(string programPath, Action<string>? log = null) {
+        this.ProgramPath = Path.GetFullPath(programPath);
         string[] lines = File.ReadAllLines(programPath);
         List<Mnemonic> mnemonicList = [];
+        List<int> sourceLineList = [];
         this._symbolTable = [];
 
-        foreach(string line in lines) {
+        for(int lineIndex = 0; lineIndex < lines.Length; lineIndex++) {
+            string line = lines[lineIndex];
             // コメント除去 (#より後)
             string processed = line;
             int commentIndex = processed.IndexOf('#');
@@ -42,6 +48,7 @@ internal class ParsedProgram {
             // ニーモニックをパース
             if(Mnemonic.TryParse(processed, null, out Mnemonic? mnemonic)) {
                 mnemonicList.Add(mnemonic);
+                sourceLineList.Add(lineIndex + 1); // 1-based行番号
                 log?.Invoke($"Parsed: {processed}");
             } else {
                 log?.Invoke($"Parse failed: {processed}");
@@ -49,10 +56,15 @@ internal class ParsedProgram {
         }
 
         this._mnemonics = mnemonicList.ToArray();
+        this._sourceLines = sourceLineList.ToArray();
     }
 
     public Mnemonic GetMnemonic(int index) {
         return this._mnemonics[index];
+    }
+
+    public int GetSourceLine(int instructionIndex) {
+        return this._sourceLines[instructionIndex];
     }
 
     public int MnemonicCount => this._mnemonics.Length;

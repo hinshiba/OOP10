@@ -11,7 +11,7 @@ internal sealed class OrInstruction: RTypeInstruction {
     }
 }
 
-internal sealed class AddInstructionParser: IInstructionParser {
+internal sealed class OrInstructionParser: IInstructionParser {
     public string Mnemonic => "or";
 
     public bool TryParse(string operands, [MaybeNullWhen(false)] out IInstruction instruction) {

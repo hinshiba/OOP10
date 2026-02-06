@@ -29,7 +29,7 @@ internal sealed class Mnemonic: IParsable<Mnemonic> {
     }
 
     public void Execute(int[] registers) {
-        RegisterOnlyContext context = new(registers);
+        ExecuteContext context = new(registers);
         this._instruction.Execute(context);
     }
 }

@@ -7,14 +7,12 @@ internal interface IExecutionContext {
     int LO { get; set; }
 }
 
-internal sealed class RegisterOnlyContext : IExecutionContext {
-    private readonly int[] _registers;
-
+internal sealed class RegisterOnlyContext: IExecutionContext {
     public RegisterOnlyContext(int[] registers) {
-        _registers = registers;
+        this.Registers = registers;
     }
 
-    public int[] Registers => _registers;
+    public int[] Registers { get; }
     public int PC { get; set; }
     public int HI { get; set; }
     public int LO { get; set; }

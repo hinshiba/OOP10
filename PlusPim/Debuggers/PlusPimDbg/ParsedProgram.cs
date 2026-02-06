@@ -6,7 +6,7 @@ internal class ParsedProgram {
 
     public ParsedProgram(string programPath) {
         string[] lines = File.ReadAllLines(programPath);
-        List<Mnemonic> mnemonicList = new();
+        List<Mnemonic> mnemonicList = [];
         this._symbolTable = [];
 
         foreach(string line in lines) {
@@ -39,7 +39,7 @@ internal class ParsedProgram {
             }
 
             // ニーモニックをパース
-            if(Mnemonic.TryParse(processed, null, out var mnemonic)) {
+            if(Mnemonic.TryParse(processed, null, out Mnemonic? mnemonic)) {
                 mnemonicList.Add(mnemonic);
             }
             // パース失敗時は無視してスキップ

@@ -102,7 +102,9 @@ internal class DebugAdapter: DebugAdapterBase {
 
         return new StackTraceResponse {
             StackFrames = [
-                new StackFrame(1, "main", 0, 0)
+                new StackFrame(1, "main", this._app.GetCurrentLine(), 1) {
+                    Source = new Source { Path = this._app.GetProgramPath() }
+                }
             ],
             TotalFrames = 1
         };

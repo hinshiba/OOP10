@@ -9,5 +9,6 @@ internal interface IDebugger {
     int GetLO();
     void Step();
     int GetCurrentLine();
+    string GetProgramPath();
     bool IsTerminated();
 }

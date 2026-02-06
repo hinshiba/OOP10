@@ -4,7 +4,7 @@ internal class ParsedProgram {
     private readonly Mnemonic[] _mnemonics;
     private readonly Dictionary<string, int> _symbolTable;
 
-    public ParsedProgram(string programPath) {
+    public ParsedProgram(string programPath, Action<string>? log = null) {
         string[] lines = File.ReadAllLines(programPath);
         List<Mnemonic> mnemonicList = [];
         this._symbolTable = [];
@@ -35,14 +35,17 @@ internal class ParsedProgram {
             if(processed.EndsWith(':') && !processed.Contains(' ')) {
                 string labelName = processed[..^1]; // 末尾の `:` を除去
                 this._symbolTable[labelName] = mnemonicList.Count;
+                log?.Invoke($"Label: {labelName} at index {mnemonicList.Count}");
                 continue;
             }
 
             // ニーモニックをパース
             if(Mnemonic.TryParse(processed, null, out Mnemonic? mnemonic)) {
                 mnemonicList.Add(mnemonic);
+                log?.Invoke($"Parsed: {processed}");
+            } else {
+                log?.Invoke($"Parse failed: {processed}");
             }
-            // パース失敗時は無視してスキップ
         }
 
         this._mnemonics = mnemonicList.ToArray();

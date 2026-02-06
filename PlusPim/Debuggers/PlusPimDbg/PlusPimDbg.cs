@@ -6,12 +6,17 @@ internal class PlusPimDbg: IDebugger {
     private ExecuteContext? _context;
     private ParsedProgram? _program;
     private bool _isTerminated;
+    private Action<string>? _log;
+
+    public void SetLogger(Action<string> log) {
+        this._log = log;
+    }
 
     public bool Load(string programPath) {
         // プログラムの解析
-        this._program = new ParsedProgram(programPath);
+        this._program = new ParsedProgram(programPath, this._log);
         // 実行コンテキストの初期化
-        this._context = new ExecuteContext();
+        this._context = new ExecuteContext(this._log);
         this._context.Registers[(int)RegisterID.T1] = 0xcafe; // テスト用初期値
         this._context.ExecutionIndex = this._program.GetLabelAddress("main") ?? 0;
         this._isTerminated = false;

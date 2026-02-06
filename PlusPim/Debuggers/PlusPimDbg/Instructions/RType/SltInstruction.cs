@@ -4,8 +4,11 @@ namespace PlusPim.Debuggers.PlusPimDbg.Instructions.RType;
 
 internal sealed class SltInstruction(RegisterID rd, RegisterID rs, RegisterID rt): RTypeInstruction(rd, rs, rt) {
     public override void Execute(IExecutionContext context) {
-        int result = this.ReadRs(context) < this.ReadRt(context) ? 1 : 0;
+        int rsVal = this.ReadRs(context);
+        int rtVal = this.ReadRt(context);
+        int result = rsVal < rtVal ? 1 : 0;
         this.WriteRd(context, result);
+        context.Log($"slt ${this.Rd}, ${this.Rs}, ${this.Rt}: 0x{rsVal:X8} < 0x{rtVal:X8} = {result}");
     }
 }
 

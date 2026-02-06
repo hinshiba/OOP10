@@ -8,7 +8,7 @@ internal interface IExecutionContext {
     int LO { get; set; }
     byte ReadMemoryByte(int address);
     void WriteMemoryByte(int address, byte value);
-
+    void Log(string message);
 }
 
 /// <summary>
@@ -29,7 +29,9 @@ internal sealed class ExecuteContext: IExecutionContext {
     /// アクセス前は未初期化(0扱い)
     /// </summary>
     private readonly Dictionary<int, byte> Memory;
-    public ExecuteContext() {
+    private readonly Action<string>? _log;
+    public ExecuteContext(Action<string>? log = null) {
+        this._log = log;
         this.Registers = new int[32];
         // 未初期化のうほうが現実的
         //Array.Clear(this.Registers, 0, 32);
@@ -50,4 +52,7 @@ internal sealed class ExecuteContext: IExecutionContext {
         this.Memory[address] = value;
     }
 
+    public void Log(string message) {
+        this._log?.Invoke(message);
+    }
 }

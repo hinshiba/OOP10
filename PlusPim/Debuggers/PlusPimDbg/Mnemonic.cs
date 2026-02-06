@@ -28,8 +28,7 @@ internal sealed class Mnemonic: IParsable<Mnemonic> {
         return Mnemonic.TryParse(s, provider, out Mnemonic? result) ? result : throw new FormatException();
     }
 
-    public void Execute(int[] registers) {
-        ExecuteContext context = new(registers);
+    public void Execute(ExecuteContext context) {
         this._instruction.Execute(context);
     }
 }

@@ -2,8 +2,8 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace PlusPim.Debuggers.PlusPimDbg.Instructions.RType;
 
-internal sealed class AddInstruction: RTypeInstruction {
-    public AddInstruction(Register rd, Register rs, Register rt) : base(rd, rs, rt) { }
+internal sealed class SltInstruction: RTypeInstruction {
+    public SltInstruction(Register rd, Register rs, Register rt) : base(rd, rs, rt) { }
 
     public override void Execute(IExecutionContext context) {
         int result = this.ReadRs(context) + this.ReadRt(context);
@@ -11,13 +11,13 @@ internal sealed class AddInstruction: RTypeInstruction {
     }
 }
 
-internal sealed class AddInstructionParser: IInstructionParser {
-    public string Mnemonic => "add";
+internal sealed class SltInstructionParser: IInstructionParser {
+    public string Mnemonic => "slt";
 
     public bool TryParse(string operands, [MaybeNullWhen(false)] out IInstruction instruction) {
         instruction = null;
         if(RTypeInstruction.TryParseOperands(operands, out Register rd, out Register rs, out Register rt)) {
-            instruction = new AddInstruction(rd, rs, rt);
+            instruction = new SltInstruction(rd, rs, rt);
             return true;
         }
         return false;

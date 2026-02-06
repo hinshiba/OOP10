@@ -6,7 +6,7 @@ internal sealed class SltInstruction: RTypeInstruction {
     public SltInstruction(Register rd, Register rs, Register rt) : base(rd, rs, rt) { }
 
     public override void Execute(IExecutionContext context) {
-        int result = this.ReadRs(context) + this.ReadRt(context);
+        int result = this.ReadRs(context) < this.ReadRt(context) ? 1 : 0;
         this.WriteRegister(context, this.Rd, result);
     }
 }

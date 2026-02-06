@@ -18,10 +18,18 @@ internal sealed partial class InstructionRegistry {
 
     public static InstructionRegistry CreateDefault() {
         Dictionary<string, IInstructionParser> parsers = new(StringComparer.OrdinalIgnoreCase);
+        // ファイル名順
 
         RegisterParser(parsers, new AddInstructionParser());
         RegisterParser(parsers, new AdduInstructionParser());
+
+        RegisterParser(parsers, new AndInstructionParser());
+        RegisterParser(parsers, new OrInstructionParser());
+
+        RegisterParser(parsers, new SltInstructionParser());
+
         RegisterParser(parsers, new SubInstructionParser());
+
 
         return new InstructionRegistry(parsers);
     }

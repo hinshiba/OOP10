@@ -26,6 +26,8 @@ internal sealed partial class InstructionRegistry {
         RegisterParser(parsers, new AndInstructionParser());
         RegisterParser(parsers, new OrInstructionParser());
 
+        RegisterParser(parsers, new SllInstructionParser());
+
         RegisterParser(parsers, new SltInstructionParser());
 
         RegisterParser(parsers, new SubInstructionParser());

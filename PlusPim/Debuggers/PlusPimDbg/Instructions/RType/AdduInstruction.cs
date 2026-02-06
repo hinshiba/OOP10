@@ -16,7 +16,7 @@ internal sealed class AdduInstructionParser: IInstructionParser {
 
     public bool TryParse(string operands, [MaybeNullWhen(false)] out IInstruction instruction) {
         instruction = null;
-        if(RTypeInstruction.TryParseOperands(operands, out RegisterID rd, out RegisterID rs, out RegisterID rt)) {
+        if(RTypeInstruction.TryParse3RegOperands(operands, out RegisterID rd, out RegisterID rs, out RegisterID rt)) {
             instruction = new AdduInstruction(rd, rs, rt);
             return true;
         }

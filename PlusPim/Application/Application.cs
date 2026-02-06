@@ -27,6 +27,10 @@ internal class Application: IApplication {
         return this._debugger.GetCurrentLine();
     }
 
+    public string GetProgramPath() {
+        return this._debugger.GetProgramPath();
+    }
+
     public bool IsTerminated() {
         return this._debugger.IsTerminated();
     }

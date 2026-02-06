@@ -60,7 +60,15 @@ internal class PlusPimDbg: IDebugger {
     }
 
     public int GetCurrentLine() {
-        return this._context == null ? -1 : this._context.ExecutionIndex;
+        if(this._context == null || this._program == null) {
+            return -1;
+        }
+
+        return this._context.ExecutionIndex >= this._program.MnemonicCount ? -1 : this._program.GetSourceLine(this._context.ExecutionIndex);
+    }
+
+    public string GetProgramPath() {
+        return this._program?.ProgramPath ?? "";
     }
 
     public bool IsTerminated() {

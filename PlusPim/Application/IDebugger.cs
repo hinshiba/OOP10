@@ -8,6 +8,11 @@ internal interface IDebugger {
     int GetHI();
     int GetLO();
     void Step();
+    /// <summary>
+    /// 0から始まる現在実行前の行番号を取得する
+    /// </summary>
+    /// <returns>行番号 ただし何かしらの問題で無効であった場合は-1</returns>
     int GetCurrentLine();
+    string GetProgramPath();
     bool IsTerminated();
 }

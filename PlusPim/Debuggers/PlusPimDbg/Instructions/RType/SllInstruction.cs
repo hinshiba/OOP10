@@ -17,6 +17,10 @@ internal sealed class SllInstructionParser: IInstructionParser {
     public bool TryParse(string operands, [MaybeNullWhen(false)] out IInstruction instruction) {
         instruction = null;
         if(RTypeInstruction.TryParse2RegShamtOperands(operands, out RegisterID rd, out RegisterID rt, out Immediate? shamt)) {
+            // シフト量は0から31の範囲
+            if(31 < shamt) {
+                return false;
+            }
             instruction = new SllInstruction(rd, rt, shamt);
             return true;
         }

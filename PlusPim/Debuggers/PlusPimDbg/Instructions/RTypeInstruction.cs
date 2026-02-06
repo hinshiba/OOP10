@@ -77,7 +77,7 @@ internal abstract partial class RTypeInstruction: IInstruction {
     /// </summary>
     /// <param name="operands">対象の文字列</param>
     /// <param name="rd"><see langword="true"/>ならばRegsiterIDが代入される．<see langword="false"/>のときの値は未定義．</param>
-    /// <param name="rs">rdと同様</param>
+    /// <param name="rt">rdと同様</param>
     /// <param name="shamt">シフト量が代入される</param>
     /// <returns><see langword="true"/>ならば解析成功</returns>
     internal static bool TryParse2RegShamtOperands(

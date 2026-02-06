@@ -21,7 +21,7 @@ internal class Immediate(int value): IParsable<Immediate> {
     }
 
     public static Immediate Parse(string s, IFormatProvider? provider) {
-        throw new NotImplementedException();
+        return TryParse(s, provider, out Immediate? result) ? result : throw new FormatException();
     }
 
 

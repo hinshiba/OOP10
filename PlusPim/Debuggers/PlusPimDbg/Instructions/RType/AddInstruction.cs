@@ -6,6 +6,7 @@ internal sealed class AddInstruction(RegisterID rd, RegisterID rs, RegisterID rt
     public override void Execute(IExecutionContext context) {
         int rsVal = this.ReadRs(context);
         int rtVal = this.ReadRt(context);
+        // TODO: オーバーフロー例外の発生の考慮
         int result = rsVal + rtVal;
         this.WriteRd(context, result);
         context.Log($"add ${this.Rd}, ${this.Rs}, ${this.Rt}: 0x{rsVal:X8} + 0x{rtVal:X8} = 0x{result:X8}");

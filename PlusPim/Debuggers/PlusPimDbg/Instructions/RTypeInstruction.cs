@@ -10,7 +10,7 @@ internal abstract partial class RTypeInstruction: IInstruction {
     [GeneratedRegex(@"^\$(?<rd>\w+),\s*\$(?<rs>\w+),\s*\$(?<rt>\w+)$")]
     private static partial Regex Operands3RegPattern();
 
-    [GeneratedRegex(@"^\$(?<rd>\w+),\s*\$(?<rs>\w+),\s*(?<shamt>\d+)$")]
+    [GeneratedRegex(@"^\$(?<rd>\w+),\s*\$(?<rt>\w+),\s*(?<shamt>\d+)$")]
     private static partial Regex Operands2RegShamtPattern();
 
     // オペランドのレジスタID
@@ -80,14 +80,14 @@ internal abstract partial class RTypeInstruction: IInstruction {
     /// <param name="rs">rdと同様</param>
     /// <param name="shamt">シフト量が代入される</param>
     /// <returns><see langword="true"/>ならば解析成功</returns>
-    internal static bool TryParse3RegOperands(
+    internal static bool TryParse2RegShamtOperands(
         string operands,
         [MaybeNullWhen(false)] out RegisterID rd,
-        [MaybeNullWhen(false)] out RegisterID rs,
+        [MaybeNullWhen(false)] out RegisterID rt,
         [MaybeNullWhen(false)] out Immediate shamt) {
 
         rd = default;
-        rs = default;
+        rt = default;
         shamt = default;
 
         Match match = Operands2RegShamtPattern().Match(operands);
@@ -96,10 +96,10 @@ internal abstract partial class RTypeInstruction: IInstruction {
         }
 
         if(Enum.TryParse<RegisterID>(match.Groups["rd"].Value, true, out RegisterID rdParsed)
-            && Enum.TryParse<RegisterID>(match.Groups["rs"].Value, true, out RegisterID rsParsed)
+            && Enum.TryParse<RegisterID>(match.Groups["rt"].Value, true, out RegisterID rtParsed)
             && Immediate.TryParse(match.Groups["shamt"].Value, null, out Immediate? shamtParsed)) {
             rd = rdParsed;
-            rs = rsParsed;
+            rt = rtParsed;
             shamt = shamtParsed;
             return rd != RegisterID.Zero;
         }

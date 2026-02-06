@@ -33,7 +33,7 @@ internal sealed class Mnemonic: IParsable<Mnemonic> {
     }
 }
 
-internal enum Register {
+internal enum RegisterID {
     Zero,
     At,
     V0,

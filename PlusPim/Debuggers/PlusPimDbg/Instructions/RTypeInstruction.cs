@@ -3,15 +3,18 @@ using System.Text.RegularExpressions;
 
 namespace PlusPim.Debuggers.PlusPimDbg.Instructions;
 
+/// <summary>
+/// MIPSにおいてR形式の命令を表す抽象基底クラス
+/// </summary>
 internal abstract partial class RTypeInstruction: IInstruction {
     [GeneratedRegex(@"^\$(?<rd>\w+),\s*\$(?<rs>\w+),\s*\$(?<rt>\w+)$")]
     private static partial Regex OperandsPattern();
 
-    protected Register Rd { get; }
-    protected Register Rs { get; }
-    protected Register Rt { get; }
+    protected RegisterID Rd { get; }
+    protected RegisterID Rs { get; }
+    protected RegisterID Rt { get; }
 
-    protected RTypeInstruction(Register rd, Register rs, Register rt) {
+    protected RTypeInstruction(RegisterID rd, RegisterID rs, RegisterID rt) {
         this.Rd = rd;
         this.Rs = rs;
         this.Rt = rt;
@@ -21,9 +24,9 @@ internal abstract partial class RTypeInstruction: IInstruction {
 
     internal static bool TryParseOperands(
         string operands,
-        [MaybeNullWhen(false)] out Register rd,
-        [MaybeNullWhen(false)] out Register rs,
-        [MaybeNullWhen(false)] out Register rt) {
+        [MaybeNullWhen(false)] out RegisterID rd,
+        [MaybeNullWhen(false)] out RegisterID rs,
+        [MaybeNullWhen(false)] out RegisterID rt) {
 
         rd = default;
         rs = default;
@@ -34,9 +37,9 @@ internal abstract partial class RTypeInstruction: IInstruction {
             return false;
         }
 
-        if(Enum.TryParse<Register>(match.Groups["rd"].Value, true, out Register rdParsed)
-            && Enum.TryParse<Register>(match.Groups["rs"].Value, true, out Register rsParsed)
-            && Enum.TryParse<Register>(match.Groups["rt"].Value, true, out Register rtParsed)) {
+        if(Enum.TryParse<RegisterID>(match.Groups["rd"].Value, true, out RegisterID rdParsed)
+            && Enum.TryParse<RegisterID>(match.Groups["rs"].Value, true, out RegisterID rsParsed)
+            && Enum.TryParse<RegisterID>(match.Groups["rt"].Value, true, out RegisterID rtParsed)) {
             rd = rdParsed;
             rs = rsParsed;
             rt = rtParsed;
@@ -54,7 +57,7 @@ internal abstract partial class RTypeInstruction: IInstruction {
         return context.Registers[(int)this.Rt];
     }
 
-    protected void WriteRegister(IExecutionContext context, Register reg, int value) {
+    protected void WriteRegister(IExecutionContext context, RegisterID reg, int value) {
         int index = (int)reg;
         if(index == 0) {
             return; // $zero保護

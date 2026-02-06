@@ -19,7 +19,7 @@ internal abstract partial class RTypeInstruction: IInstruction {
     protected RegisterID Rt { get; }
 
     // シフト量の即値
-    protected int Shamt { get; }
+    protected Immediate Shamt { get; }
 
     protected RTypeInstruction(RegisterID rd, RegisterID rs, RegisterID rt) {
         this.Rd = rd;
@@ -66,7 +66,7 @@ internal abstract partial class RTypeInstruction: IInstruction {
             rd = rdParsed;
             rs = rsParsed;
             rt = rtParsed;
-            return true;
+            return rd != RegisterID.Zero;
         }
 
         return false;
@@ -101,7 +101,7 @@ internal abstract partial class RTypeInstruction: IInstruction {
             rd = rdParsed;
             rs = rsParsed;
             shamt = shamtParsed;
-            return true;
+            return rd != RegisterID.Zero;
         }
 
         return false;
@@ -115,11 +115,10 @@ internal abstract partial class RTypeInstruction: IInstruction {
         return context.Registers[(int)this.Rt];
     }
 
-    protected void WriteRegister(IExecutionContext context, RegisterID reg, int value) {
-        int index = (int)reg;
-        if(index == 0) {
+    protected void WriteRd(IExecutionContext context, int value) {
+        if(this.Rd == RegisterID.Zero) {
             return; // $zero保護
         }
-        context.Registers[index] = value;
+        context.Registers[(int)this.Rd] = value;
     }
 }

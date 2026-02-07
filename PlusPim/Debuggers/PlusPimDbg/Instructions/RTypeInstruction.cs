@@ -36,7 +36,8 @@ internal abstract partial class RTypeInstruction: IInstruction {
     }
 
     // 逆操作のためのRdの以前の値
-    private int _previousRdValue;
+    // ループ内では複数回書き込まれる可能性があるためスタックで管理
+    private readonly Stack<int> _previousRdValues = new();
 
     public abstract void Execute(IExecutionContext context);
 
@@ -47,7 +48,10 @@ internal abstract partial class RTypeInstruction: IInstruction {
         if(this.Rd == RegisterID.Zero) {
             return;
         }
-        context.Registers[(int)this.Rd] = this._previousRdValue;
+        if(this._previousRdValues.Count == 0) {
+            throw new InvalidOperationException("No previous value to undo.");
+        }
+        context.Registers[(int)this.Rd] = this._previousRdValues.Pop();
     }
 
     /// <summary>
@@ -152,7 +156,7 @@ internal abstract partial class RTypeInstruction: IInstruction {
             return;
         }
         // 逆操作のために保存
-        this._previousRdValue = context.Registers[(int)this.Rd];
+        this._previousRdValues.Push(context.Registers[(int)this.Rd]);
         context.Registers[(int)this.Rd] = value;
     }
 }

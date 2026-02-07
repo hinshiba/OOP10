@@ -7,6 +7,7 @@ internal class PlusPimDbg: IDebugger {
     private ParsedProgram? _program;
     private bool _isTerminated;
     private Action<string>? _log;
+    private readonly Stack<(Mnemonic Mnemonic, bool WasTerminated)> _history = new();
 
     public void SetLogger(Action<string> log) {
         this._log = log;
@@ -20,6 +21,7 @@ internal class PlusPimDbg: IDebugger {
         this._context.Registers[(int)RegisterID.T1] = 0xcafe; // テスト用初期値
         this._context.ExecutionIndex = this._program.GetLabelAddress("main") ?? 0;
         this._isTerminated = false;
+        this._history.Clear();
         return true;
     }
 
@@ -51,7 +53,9 @@ internal class PlusPimDbg: IDebugger {
             return;
         }
 
-        this._program.GetMnemonic(this._context.ExecutionIndex).Execute(this._context);
+        Mnemonic mnemonic = this._program.GetMnemonic(this._context.ExecutionIndex);
+        this._history.Push((mnemonic, this._isTerminated));
+        mnemonic.Execute(this._context);
         this._context.ExecutionIndex++;
 
         if(this._program.MnemonicCount <= this._context.ExecutionIndex) {
@@ -59,12 +63,22 @@ internal class PlusPimDbg: IDebugger {
         }
     }
 
-    public int GetCurrentLine() {
-        if(this._context == null || this._program == null) {
-            return -1;
+    public bool StepBack() {
+        if(this._history.Count == 0 || this._context == null) {
+            return false;
         }
 
-        return this._context.ExecutionIndex >= this._program.MnemonicCount ? -1 : this._program.GetSourceLine(this._context.ExecutionIndex);
+        (Mnemonic? mnemonic, bool wasTerminated) = this._history.Pop();
+        mnemonic.Undo(this._context);
+        this._context.ExecutionIndex--;
+        this._isTerminated = wasTerminated;
+        return true;
+    }
+
+    public int GetCurrentLine() {
+        return this._context == null || this._program == null
+            ? -1
+            : this._context.ExecutionIndex >= this._program.MnemonicCount ? -1 : this._program.GetSourceLine(this._context.ExecutionIndex);
     }
 
     public string GetProgramPath() {

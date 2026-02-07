@@ -9,7 +9,7 @@ internal interface IApplication {
     /// <summary>
     /// 1ステップ分、実行を巻き戻す
     /// </summary>
-    /// <returns>巻き戻しに成功した場合は<see cref="true"/></returns>
+    /// <returns>巻き戻しに成功した場合は<see langword="true"/></returns>
     bool StepBack();
     int GetCurrentLine();
     string GetProgramPath();

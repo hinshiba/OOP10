@@ -23,6 +23,11 @@ internal class Application: IApplication {
         this._debugger.Step();
     }
 
+
+    public bool StepBack() {
+        return this._debugger.StepBack();
+    }
+
     public int GetCurrentLine() {
         return this._debugger.GetCurrentLine();
     }

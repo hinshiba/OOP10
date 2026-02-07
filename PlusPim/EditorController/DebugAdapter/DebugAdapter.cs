@@ -31,7 +31,9 @@ internal class DebugAdapter: DebugAdapterBase {
     protected override InitializeResponse HandleInitializeRequest(InitializeArguments arguments) {
         // InitializeRequestに対してResponseを返す前は，イベントを送信してはならない
         // 返さないといけないレスポンスに，戻り値の型が設定されているので便利
-        return new InitializeResponse();
+        return new InitializeResponse {
+            SupportsStepBack = true
+        };
     }
 
     protected override LaunchResponse HandleLaunchRequest(LaunchArguments args) {
@@ -195,6 +197,45 @@ internal class DebugAdapter: DebugAdapterBase {
 
         this.ExecuteSingleStep();
         return new StepOutResponse();
+    }
+
+    protected override StepBackResponse HandleStepBackRequest(StepBackArguments args) {
+        this.Protocol.SendEvent(new OutputEvent {
+            Output = "Handler: StepBackRequest.\n",
+            Category = OutputEvent.CategoryValue.Console
+        });
+
+        if(!this._app.StepBack()) {
+            this.Protocol.SendEvent(new OutputEvent {
+                Output = "Already at the beginning of the program.\n",
+                Category = OutputEvent.CategoryValue.Console
+            });
+
+        }
+        this.Protocol.SendEvent(new StoppedEvent(StoppedEvent.ReasonValue.Step) {
+            ThreadId = 1,
+            AllThreadsStopped = true
+        });
+
+        return new StepBackResponse();
+    }
+
+    protected override ReverseContinueResponse HandleReverseContinueRequest(ReverseContinueArguments args) {
+        this.Protocol.SendEvent(new OutputEvent {
+            Output = "Handler: ReverseContinueRequest.\n",
+            Category = OutputEvent.CategoryValue.Console
+        });
+
+        while(this._app.StepBack()) {
+            // 先頭まで巻き戻す
+        }
+
+        this.Protocol.SendEvent(new StoppedEvent(StoppedEvent.ReasonValue.Step) {
+            ThreadId = 1,
+            AllThreadsStopped = true
+        });
+
+        return new ReverseContinueResponse();
     }
 
     private void ExecuteSingleStep() {

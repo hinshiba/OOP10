@@ -31,6 +31,10 @@ internal sealed class Mnemonic: IParsable<Mnemonic> {
     public void Execute(ExecuteContext context) {
         this._instruction.Execute(context);
     }
+
+    public void Undo(ExecuteContext context) {
+        this._instruction.Undo(context);
+    }
 }
 
 internal enum RegisterID {

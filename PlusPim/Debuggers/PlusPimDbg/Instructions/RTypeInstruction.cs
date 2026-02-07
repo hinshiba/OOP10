@@ -35,7 +35,24 @@ internal abstract partial class RTypeInstruction: IInstruction {
         this.Shamt = shamt;
     }
 
+    // 逆操作のためのRdの以前の値
+    // ループ内では複数回書き込まれる可能性があるためスタックで管理
+    private readonly Stack<int> _previousRdValues = new();
+
     public abstract void Execute(IExecutionContext context);
+
+    /// <summary>
+    /// 命令の逆操作だが，ほとんどのR形式命令ではRdに書き込んだ値を元に戻すだけで良い
+    /// </summary>
+    public void Undo(IExecutionContext context) {
+        if(this.Rd == RegisterID.Zero) {
+            return;
+        }
+        if(this._previousRdValues.Count == 0) {
+            throw new InvalidOperationException("No previous value to undo.");
+        }
+        context.Registers[(int)this.Rd] = this._previousRdValues.Pop();
+    }
 
     /// <summary>
     /// オペランドを3レジスタを指定している文字列から解析してRegisterIDに変換する
@@ -107,18 +124,39 @@ internal abstract partial class RTypeInstruction: IInstruction {
         return false;
     }
 
+    /// <summary>
+    /// Sourceレジスタの値をコンテキストから読み込む
+    /// </summary>
+    /// <param name="context">レジスタを読み込むコンテキスト</param>
+    /// <returns>Sourceレジスタの値</returns>
     protected int ReadRs(IExecutionContext context) {
         return context.Registers[(int)this.Rs];
     }
 
+    /// <summary>
+    /// Targetレジスタの値をコンテキストから読み込む
+    /// </summary>
+    /// <param name="context">レジスタを読み込むコンテキスト</param>
+    /// <returns>Targetレジスタの値</returns>
     protected int ReadRt(IExecutionContext context) {
         return context.Registers[(int)this.Rt];
     }
 
+    /// <summary>
+    /// コンテキスト内のDestinationレジスタに値を書き込む
+    /// </summary>
+    /// <remarks>書き込み先がゼロレジスタでも例外は発生しない．
+    /// これを呼び出すと逆操作のためにDestinationレジスタの値は保存される</remarks>
+    /// <param name="context">レジスタを含むコンテキスト</param>
+    /// <param name="value">書き込む値</param>
     protected void WriteRd(IExecutionContext context, int value) {
+        // $zero保護
         if(this.Rd == RegisterID.Zero) {
-            return; // $zero保護
+            // 現実でも$zeroに書き込んでも例外は発生しないのでこれでよい
+            return;
         }
+        // 逆操作のために保存
+        this._previousRdValues.Push(context.Registers[(int)this.Rd]);
         context.Registers[(int)this.Rd] = value;
     }
 }

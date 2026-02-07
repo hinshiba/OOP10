@@ -15,8 +15,10 @@ internal interface IExecutionContext {
 /// 実行に必要なレジスタ，特殊レジスタ，メモリ情報を提供する
 /// </summary>
 internal sealed class ExecuteContext: IExecutionContext {
+    public const int TextSegmentBase = 0x00400000;
+
     public int[] Registers { get; }
-    public int PC => this.ExecutionIndex + 0x00400000;
+    public int PC => this.ExecutionIndex + TextSegmentBase;
 
     /// PCの実装の代わり
     public int ExecutionIndex { get; set; }

@@ -8,6 +8,13 @@ internal interface IDebugger {
     int GetHI();
     int GetLO();
     void Step();
+
+    /// <summary>
+    /// 1ステップ分、実行を巻き戻す
+    /// </summary>
+    /// <returns>巻き戻しに成功した場合は<see cref="true"/></returns>
+    bool StepBack();
+
     /// <summary>
     /// 0から始まる現在実行前の行番号を取得する
     /// </summary>

@@ -205,21 +205,17 @@ internal class DebugAdapter: DebugAdapterBase {
             Category = OutputEvent.CategoryValue.Console
         });
 
-        if(this._app.StepBack()) {
-            this.Protocol.SendEvent(new StoppedEvent(StoppedEvent.ReasonValue.Step) {
-                ThreadId = 1,
-                AllThreadsStopped = true
-            });
-        } else {
+        if(!this._app.StepBack()) {
             this.Protocol.SendEvent(new OutputEvent {
                 Output = "Already at the beginning of the program.\n",
                 Category = OutputEvent.CategoryValue.Console
             });
-            this.Protocol.SendEvent(new StoppedEvent(StoppedEvent.ReasonValue.Step) {
-                ThreadId = 1,
-                AllThreadsStopped = true
-            });
+
         }
+        this.Protocol.SendEvent(new StoppedEvent(StoppedEvent.ReasonValue.Step) {
+            ThreadId = 1,
+            AllThreadsStopped = true
+        });
 
         return new StepBackResponse();
     }
